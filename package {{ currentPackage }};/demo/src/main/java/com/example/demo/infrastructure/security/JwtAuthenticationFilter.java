@@ -1,4 +1,4 @@
-package {{ currentPackage }};
+package com.example.demo.infrastructure.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final {{ pkg.security }}.JwtService jwtService;
+    private final com.example.demo.infrastructure.security.JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
     @Override

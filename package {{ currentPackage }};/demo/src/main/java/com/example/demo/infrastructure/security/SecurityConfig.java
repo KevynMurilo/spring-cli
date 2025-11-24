@@ -1,4 +1,4 @@
-package {{ currentPackage }};
+package com.example.demo.infrastructure.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -9,9 +9,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-{% if features.enableJwt %}
-import {{ pkg.security }}.JwtAuthenticationFilter;
-import {{ pkg.security }}.JwtAuthenticationEntryPoint;
+import com.example.demo.infrastructure.security.JwtAuthenticationFilter;
+import com.example.demo.infrastructure.security.JwtAuthenticationEntryPoint;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,18 +18,15 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-{% endif %}
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    {% if features.enableJwt %}
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    {% endif %}
-
+    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -38,24 +34,19 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        {% if features.enableSwagger %}
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        {% endif %}
-                        .requestMatchers("/actuator/**").permitAll()
+                                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                                                .requestMatchers("/actuator/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
-        {% if features.enableJwt %}
-        http.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
+                http.exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint));
         http.authenticationProvider(authenticationProvider(null, null));
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        {% endif %}
-
+        
         return http.build();
     }
 
-    {% if features.enableJwt %}
-    @Bean
+        @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -72,5 +63,4 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-    {% endif %}
-}
+    }

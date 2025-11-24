@@ -122,36 +122,31 @@ public class ProjectGeneratorService {
     }
 
     private void generateFeatureFiles(ProjectConfig config, Path basePackagePath, TemplateContext context) throws IOException {
-        String configPath = context.architecture().getPathForLayer("config").replace('.', '/');
-        String securityPath = context.architecture().getPathForLayer("security").replace('.', '/');
+        Architecture arch = context.architecture();
+        ProjectFeatures features = config.features();
 
-        if (config.features().enableSwagger()) {
-            generateClass(basePackagePath, configPath, "SwaggerConfig.java", "common/SwaggerConfig", context);
+        for (Architecture.FeatureBlueprint blueprint : arch.getFeatureBlueprints()) {
+
+            if (blueprint.toggle().isEnabled(features)) {
+
+                generateFeatureClass(
+                        arch,
+                        basePackagePath,
+                        context,
+                        blueprint.layer(),
+                        blueprint.filename(),
+                        blueprint.template()
+                );
+            }
         }
+    }
 
-        if (config.features().enableJwt()) {
-            generateClass(basePackagePath, securityPath, "SecurityConfig.java", "common/SecurityConfig", context);
-            generateClass(basePackagePath, securityPath, "JwtService.java", "common/JwtService", context);
-            generateClass(basePackagePath, securityPath, "JwtAuthenticationFilter.java", "common/JwtAuthenticationFilter", context);
-            generateClass(basePackagePath, securityPath, "JwtAuthenticationEntryPoint.java", "common/JwtAuthenticationEntryPoint", context);
-            generateClass(basePackagePath, securityPath, "UserDetailsServiceImpl.java", "common/UserDetailsServiceImpl", context);
+    private void generateFeatureClass(Architecture arch, Path basePackagePath, TemplateContext context, String layerName, String fileName, String templateName) throws IOException {
 
-            String controllerPath = context.architecture().getPathForLayer("controller").replace('.', '/');
-            generateClass(basePackagePath, controllerPath, "AuthController.java", "common/AuthController", context);
-            generateClass(basePackagePath, controllerPath, "LoginRequest.java", "common/LoginRequest", context);
-            generateClass(basePackagePath, controllerPath, "AuthResponse.java", "common/AuthResponse", context);
-        }
+        String layerPath = arch.getPathForLayer(layerName);
+        String relativePath = layerPath.replace("{feature}", "demo").replace('.', '/');
 
-        if (config.features().enableExceptionHandler()) {
-            generateClass(basePackagePath, configPath, "GlobalExceptionHandler.java", "common/GlobalExceptionHandler", context);
-            generateClass(basePackagePath, configPath, "ErrorResponse.java", "common/ErrorResponse", context);
-            generateClass(basePackagePath, configPath, "ResourceNotFoundException.java", "common/ResourceNotFoundException", context);
-            generateClass(basePackagePath, configPath, "BadRequestException.java", "common/BadRequestException", context);
-        }
-
-        if (config.features().enableCors()) {
-            generateClass(basePackagePath, configPath, "CorsConfig.java", "common/CorsConfig", context);
-        }
+        generateClass(basePackagePath, relativePath, fileName, templateName, context);
     }
 
     private void injectDependencies(ProjectConfig config, Path projectRoot) throws IOException {
@@ -248,7 +243,7 @@ public class ProjectGeneratorService {
         Path expectedPath = baseOutputDir.resolve(artifactId);
 
         if (Files.exists(expectedPath) &&
-            (Files.exists(expectedPath.resolve("pom.xml")) || Files.exists(expectedPath.resolve("build.gradle")))) {
+                (Files.exists(expectedPath.resolve("pom.xml")) || Files.exists(expectedPath.resolve("build.gradle")))) {
             return expectedPath;
         }
 

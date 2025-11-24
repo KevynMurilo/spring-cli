@@ -1,0 +1,19 @@
+spring:
+  application:
+    name:
+        demo  profiles:
+    active:
+        dev
+
+server:
+  port: 8080
+
+jwt:
+  # 1 dia em milissegundos
+  expiration: 86400000
+  secret: ${JWT_SECRET:default-secret-key-change-it-in-production-environment}
+
+logging:
+  level:
+    root: INFO
+    com.example.demo: INFO
