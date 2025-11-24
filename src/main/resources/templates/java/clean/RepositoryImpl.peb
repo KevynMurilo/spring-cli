@@ -1,0 +1,57 @@
+package {{ currentPackage }};
+
+import {{ pkg.model }}.{{ entityName }};
+import {{ pkg['port-out'] }}.{{ entityName }}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Component
+@RequiredArgsConstructor
+public class {{ entityName }}RepositoryImpl implements {{ entityName }}Repository {
+
+    private final {{ entityName }}JpaRepository jpaRepository;
+
+    @Override
+    public List<{{ entityName }}> findAll() {
+        return jpaRepository.findAll().stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<{{ entityName }}> findById(Long id) {
+        return jpaRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public {{ entityName }} save({{ entityName }} domain) {
+        {{ entityName }}Entity entity = toEntity(domain);
+        {{ entityName }}Entity saved = jpaRepository.save(entity);
+        return toDomain(saved);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
+    }
+
+    private {{ entityName }} toDomain({{ entityName }}Entity entity) {
+        return {{ entityName }}.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .build();
+    }
+
+    private {{ entityName }}Entity toEntity({{ entityName }} domain) {
+        return {{ entityName }}Entity.builder()
+                .id(domain.getId())
+                .name(domain.getName())
+                .description(domain.getDescription())
+                .build();
+    }
+}

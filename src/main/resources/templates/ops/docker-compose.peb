@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: {{ projectName }}
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      {% if database == 'postgresql' %}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/{{ projectName | replace('-', '_') }}
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      {% elseif database == 'mysql' %}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/{{ projectName | replace('-', '_') }}
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      {% endif %}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  {% if database == 'postgresql' %}
+  db:
+    image: postgres:16-alpine
+    container_name: {{ projectName }}-db
+    environment:
+      POSTGRES_DB: {{ projectName | replace('-', '_') }}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+  {% elseif database == 'mysql' %}
+  db:
+    image: mysql:8-alpine
+    container_name: {{ projectName }}-db
+    environment:
+      MYSQL_DATABASE: {{ projectName | replace('-', '_') }}
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+  {% endif %}
+
+volumes:
+  {% if database == 'postgresql' %}
+  postgres-data:
+  {% elseif database == 'mysql' %}
+  mysql-data:
+  {% endif %}
+
+networks:
+  app-network:
+    driver: bridge

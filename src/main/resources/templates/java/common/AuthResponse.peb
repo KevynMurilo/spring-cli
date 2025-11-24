@@ -1,0 +1,33 @@
+package {{ currentPackage }};
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.media.Schema;
+{% endif %}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+{% if features.enableSwagger %}
+@Schema(description = "Authentication response with JWT token")
+{% endif %}
+public class AuthResponse {
+
+    {% if features.enableSwagger %}
+    @Schema(description = "JWT access token", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
+    {% endif %}
+    private String token;
+
+    {% if features.enableSwagger %}
+    @Schema(description = "Token type", example = "Bearer")
+    {% endif %}
+    private String type;
+
+    {% if features.enableSwagger %}
+    @Schema(description = "Username", example = "admin")
+    {% endif %}
+    private String username;
+}

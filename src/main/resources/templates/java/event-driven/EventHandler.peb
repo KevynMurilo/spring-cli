@@ -1,0 +1,17 @@
+package {{ currentPackage }};
+
+import {{ pkg.event }}.{{ entityName }}CreatedEvent;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class {{ entityName }}EventHandler {
+
+    public void handle({{ entityName }}CreatedEvent event) {
+        log.info("Handling {{ entityName }}CreatedEvent: id={}, name={}, occurredAt={}",
+                event.getId(), event.getName(), event.getOccurredAt());
+    }
+}

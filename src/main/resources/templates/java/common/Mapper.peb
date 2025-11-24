@@ -1,0 +1,47 @@
+package {{ currentPackage }};
+
+{% if features.enableMapStruct %}
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants;
+{% else %}
+import org.springframework.stereotype.Component;
+{% endif %}
+import {{ pkg.model }}.{{ entityName }};
+
+{% if features.enableMapStruct %}
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface {{ entityName }}Mapper {
+
+    {{ entityName }}DTO toDTO({{ entityName }} entity);
+
+    {{ entityName }} toEntity({{ entityName }}DTO dto);
+}
+{% else %}
+@Component
+public class {{ entityName }}Mapper {
+
+    public {{ entityName }}DTO toDTO({{ entityName }} entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        return {{ entityName }}DTO.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .build();
+    }
+
+    public {{ entityName }} toEntity({{ entityName }}DTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        return {{ entityName }}.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .description(dto.getDescription())
+                .build();
+    }
+}
+{% endif %}

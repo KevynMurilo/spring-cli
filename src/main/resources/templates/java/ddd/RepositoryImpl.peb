@@ -1,0 +1,64 @@
+package {{ currentPackage }};
+
+import {{ pkg.aggregate }}.{{ entityName }}Aggregate;
+import {{ pkg.model }}.{{ entityName }}Entity;
+import {{ pkg.valueobject }}.{{ entityName }}Id;
+import {{ pkg.repository }}.{{ entityName }}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Component
+@RequiredArgsConstructor
+public class {{ entityName }}RepositoryImpl implements {{ entityName }}Repository {
+
+    private final {{ entityName }}JpaRepository jpaRepository;
+
+    @Override
+    public List<{{ entityName }}Aggregate> findAll() {
+        return jpaRepository.findAll().stream()
+                .map(this::toAggregate)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<{{ entityName }}Aggregate> findById(Long id) {
+        return jpaRepository.findById(id).map(this::toAggregate);
+    }
+
+    @Override
+    public {{ entityName }}Aggregate save({{ entityName }}Aggregate aggregate) {
+        {{ entityName }}JpaEntity jpaEntity = toJpaEntity(aggregate);
+        {{ entityName }}JpaEntity saved = jpaRepository.save(jpaEntity);
+        return toAggregate(saved);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
+    }
+
+    private {{ entityName }}Aggregate toAggregate({{ entityName }}JpaEntity jpaEntity) {
+        {{ entityName }}Entity entity = {{ entityName }}Entity.builder()
+                .id(jpaEntity.getId())
+                .name(jpaEntity.getName())
+                .description(jpaEntity.getDescription())
+                .build();
+
+        return {{ entityName }}Aggregate.builder()
+                .id(new {{ entityName }}Id(jpaEntity.getId()))
+                .entity(entity)
+                .build();
+    }
+
+    private {{ entityName }}JpaEntity toJpaEntity({{ entityName }}Aggregate aggregate) {
+        return {{ entityName }}JpaEntity.builder()
+                .id(aggregate.getId() != null ? aggregate.getId().getValue() : null)
+                .name(aggregate.getEntity().getName())
+                .description(aggregate.getEntity().getDescription())
+                .build();
+    }
+}

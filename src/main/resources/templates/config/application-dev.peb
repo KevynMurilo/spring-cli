@@ -1,0 +1,53 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+{% if database %}
+  datasource:
+{% if database == 'h2' %}
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+{% elseif database == 'postgresql' %}
+    url: jdbc:postgresql://localhost:5432/{{ projectName | replace('-', '_') }}
+    username: postgres
+    password: password
+{% elseif database == 'mysql' %}
+    url: jdbc:mysql://localhost:3306/{{ projectName | replace('-', '_') }}
+    username: root
+    password: root
+{% endif %}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+{% if database == 'postgresql' %}
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+{% elseif database == 'mysql' %}
+        dialect: org.hibernate.dialect.MySQLDialect
+{% endif %}
+
+    {% if database == 'h2' %}
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+{% endif %}
+{% endif %}
+
+server:
+  error:
+    include-message: always
+    include-stacktrace: always
+
+logging:
+  level:
+    root: INFO
+    {{ packageName }}: DEBUG
+    org.hibernate.SQL: DEBUG

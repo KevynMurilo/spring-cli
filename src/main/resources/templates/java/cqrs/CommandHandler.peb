@@ -1,0 +1,28 @@
+package {{ currentPackage }};
+
+import {{ pkg.command }}.Create{{ entityName }}Command;
+import {{ pkg.model }}.{{ entityName }};
+import {{ pkg.repository }}.{{ entityName }}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+@Component
+@RequiredArgsConstructor
+@Transactional
+public class {{ entityName }}CommandHandler {
+
+    private final {{ entityName }}Repository repository;
+
+    public {{ entityName }} handle(Create{{ entityName }}Command command) {
+        {{ entityName }} entity = {{ entityName }}.builder()
+                .name(command.getName())
+                .description(command.getDescription())
+                .build();
+        return repository.save(entity);
+    }
+
+    public void handleDelete(Long id) {
+        repository.deleteById(id);
+    }
+}

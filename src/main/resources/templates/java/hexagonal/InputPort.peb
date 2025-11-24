@@ -1,0 +1,19 @@
+package {{ currentPackage }};
+
+import {{ pkg.model }}.{{ entityName }};
+
+import java.util.List;
+import java.util.Optional;
+
+public interface {{ entityName }}InputPort {
+
+    List<{{ entityName }}> findAll();
+
+    Optional<{{ entityName }}> findById(Long id);
+
+    {{ entityName }} create({{ entityName }} entity);
+
+    {{ entityName }} update(Long id, {{ entityName }} entity);
+
+    void delete(Long id);
+}

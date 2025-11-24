@@ -1,0 +1,43 @@
+package {{ currentPackage }};
+
+import {{ pkg.model }}.{{ entityName }};
+import {{ pkg['port-out'] }}.{{ entityName }}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class {{ entityName }}UseCase {
+
+    private final {{ entityName }}Repository repository;
+
+    public List<{{ entityName }}> findAll() {
+        return repository.findAll();
+    }
+
+    public Optional<{{ entityName }}> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    public {{ entityName }} create({{ entityName }} entity) {
+        return repository.save(entity);
+    }
+
+    public {{ entityName }} update(Long id, {{ entityName }} entity) {
+        return repository.findById(id)
+                .map(existing -> {
+                    entity.setId(id);
+                    return repository.save(entity);
+                })
+                .orElseThrow(() -> new RuntimeException("{{ entityName }} not found with id: " + id));
+    }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
+}

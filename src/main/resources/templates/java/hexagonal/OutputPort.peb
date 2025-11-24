@@ -1,0 +1,17 @@
+package {{ currentPackage }};
+
+import {{ pkg.model }}.{{ entityName }};
+
+import java.util.List;
+import java.util.Optional;
+
+public interface {{ entityName }}OutputPort {
+
+    List<{{ entityName }}> findAll();
+
+    Optional<{{ entityName }}> findById(Long id);
+
+    {{ entityName }} save({{ entityName }} entity);
+
+    void deleteById(Long id);
+}

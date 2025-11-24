@@ -1,0 +1,34 @@
+package {{ currentPackage }};
+
+import {{ pkg.aggregate }}.{{ entityName }}Aggregate;
+import {{ pkg.model }}.{{ entityName }}Entity;
+import {{ pkg.valueobject }}.{{ entityName }}Id;
+import org.springframework.stereotype.Component;
+
+@Component
+public class {{ entityName }}Factory {
+
+    public {{ entityName }}Aggregate create(String name, String description) {
+        {{ entityName }}Entity entity = {{ entityName }}Entity.builder()
+                .name(name)
+                .description(description)
+                .build();
+
+        return {{ entityName }}Aggregate.builder()
+                .entity(entity)
+                .build();
+    }
+
+    public {{ entityName }}Aggregate reconstruct(Long id, String name, String description) {
+        {{ entityName }}Entity entity = {{ entityName }}Entity.builder()
+                .id(id)
+                .name(name)
+                .description(description)
+                .build();
+
+        return {{ entityName }}Aggregate.builder()
+                .id(new {{ entityName }}Id(id))
+                .entity(entity)
+                .build();
+    }
+}

@@ -1,0 +1,21 @@
+package {{ currentPackage }};
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class {{ entityName }} {
+
+    private Long id;
+    private String name;
+    private String description;
+
+    public boolean isValid() {
+        return name != null && !name.isBlank();
+    }
+}

@@ -1,0 +1,68 @@
+package {{ currentPackage }};
+
+import {{ pkg.aggregate }}.{{ entityName }}Aggregate;
+import {{ pkg.service }}.{{ entityName }}DomainService;
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+{% endif %}
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/{{ entityName | lower }}s")
+@RequiredArgsConstructor
+{% if features.enableSwagger %}
+@Tag(name = "{{ entityName }}", description = "{{ entityName }} management APIs")
+{% endif %}
+public class {{ entityName }}Controller {
+
+    private final {{ entityName }}DomainService domainService;
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Get all {{ entityName | lower }}s")
+    {% endif %}
+    @GetMapping
+    public ResponseEntity<List<{{ entityName }}Aggregate>> getAll() {
+        return ResponseEntity.ok(domainService.findAll());
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Get {{ entityName | lower }} by ID")
+    {% endif %}
+    @GetMapping("/{id}")
+    public ResponseEntity<{{ entityName }}Aggregate> getById(@PathVariable Long id) {
+        return domainService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Create new {{ entityName | lower }}")
+    {% endif %}
+    @PostMapping
+    public ResponseEntity<{{ entityName }}Aggregate> create(@RequestBody {{ entityName }}Aggregate aggregate) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(domainService.create(aggregate));
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Update {{ entityName | lower }}")
+    {% endif %}
+    @PutMapping("/{id}")
+    public ResponseEntity<{{ entityName }}Aggregate> update(@PathVariable Long id, @RequestBody {{ entityName }}Aggregate aggregate) {
+        return ResponseEntity.ok(domainService.update(id, aggregate));
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Delete {{ entityName | lower }}")
+    {% endif %}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        domainService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}

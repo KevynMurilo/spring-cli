@@ -1,0 +1,40 @@
+package {{ currentPackage }};
+
+import {{ pkg.aggregate }}.{{ entityName }}Aggregate;
+import {{ pkg.repository }}.{{ entityName }}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class {{ entityName }}DomainService {
+
+    private final {{ entityName }}Repository repository;
+
+    public List<{{ entityName }}Aggregate> findAll() {
+        return repository.findAll();
+    }
+
+    public Optional<{{ entityName }}Aggregate> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    public {{ entityName }}Aggregate create({{ entityName }}Aggregate aggregate) {
+        aggregate.validate();
+        return repository.save(aggregate);
+    }
+
+    public {{ entityName }}Aggregate update(Long id, {{ entityName }}Aggregate aggregate) {
+        aggregate.validate();
+        return repository.findById(id)
+                .map(existing -> repository.save(aggregate))
+                .orElseThrow(() -> new RuntimeException("{{ entityName }} not found"));
+    }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
+}

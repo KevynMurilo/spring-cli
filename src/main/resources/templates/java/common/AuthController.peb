@@ -1,0 +1,51 @@
+package {{ currentPackage }};
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails; // Import added
+import org.springframework.web.bind.annotation.*;
+
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+{% endif %}
+
+@RestController
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+{% if features.enableSwagger %}
+@Tag(name = "Authentication", description = "Authentication management APIs")
+{% endif %}
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final {{ pkg.security }}.JwtService jwtService;
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "User login", description = "Authenticate user and return JWT token")
+    {% endif %}
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String token = jwtService.generateToken(userDetails);
+
+        return ResponseEntity.ok(new AuthResponse(token, "Bearer", userDetails.getUsername()));
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Validate token", description = "Check if JWT token is valid")
+    {% endif %}
+    @GetMapping("/validate")
+    public ResponseEntity<Boolean> validateToken(@RequestHeader("Authorization") String token) {
+        String jwt = token.replace("Bearer ", "");
+        boolean isValid = jwtService.validateToken(jwt);
+        return ResponseEntity.ok(isValid);
+    }
+}

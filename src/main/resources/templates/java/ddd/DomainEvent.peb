@@ -1,0 +1,23 @@
+package {{ currentPackage }};
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class {{ entityName }}CreatedEvent {
+
+    private Long entityId;
+    private String name;
+    private LocalDateTime occurredOn;
+
+    public {{ entityName }}CreatedEvent(Long entityId, String name) {
+        this.entityId = entityId;
+        this.name = name;
+        this.occurredOn = LocalDateTime.now();
+    }
+}

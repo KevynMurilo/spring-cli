@@ -1,0 +1,38 @@
+package {{ currentPackage }};
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import {{ pkg.model }}.{{ entityName }};
+import {{ pkg.repository }}.{{ entityName }}Repository;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class {{ entityName }}Service {
+
+    private final {{ entityName }}Repository repository;
+
+    public List<{{ entityName }}> findAll() {
+        return repository.findAll();
+    }
+
+    public {{ entityName }} findById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("{{ entityName }} not found with id: " + id));
+    }
+
+    public {{ entityName }} save({{ entityName }} entity) {
+        return repository.save(entity);
+    }
+
+    public {{ entityName }} update(Long id, {{ entityName }} entity) {
+        findById(id);
+        entity.setId(id);
+        return repository.save(entity);
+    }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
+}

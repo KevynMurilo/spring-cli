@@ -1,0 +1,22 @@
+spring:
+  application:
+    name:
+        {{ projectName }}
+  profiles:
+    active:
+        dev
+
+server:
+  port: 8080
+
+{% if features.enableJwt %}
+jwt:
+  # 1 dia em milissegundos
+  expiration: 86400000
+  secret: ${JWT_SECRET:default-secret-key-change-it-in-production-environment}
+{% endif %}
+
+logging:
+  level:
+    root: INFO
+    {{ packageName }}: INFO

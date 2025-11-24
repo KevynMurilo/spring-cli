@@ -1,0 +1,52 @@
+package {{ currentPackage }};
+
+import {{ pkg['port-in'] }}.{{ entityName }}InputPort;
+import {{ pkg['port-out'] }}.{{ entityName }}OutputPort;
+import {{ pkg.model }}.{{ entityName }};
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class {{ entityName }}Service implements {{ entityName }}InputPort {
+
+    private final {{ entityName }}OutputPort outputPort;
+
+    @Override
+    public List<{{ entityName }}> findAll() {
+        return outputPort.findAll();
+    }
+
+    @Override
+    public Optional<{{ entityName }}> findById(Long id) {
+        return outputPort.findById(id);
+    }
+
+    @Override
+    public {{ entityName }} create({{ entityName }} entity) {
+        if (!entity.isValid()) {
+            throw new IllegalArgumentException("Invalid {{ entityName }}");
+        }
+        return outputPort.save(entity);
+    }
+
+    @Override
+    public {{ entityName }} update(Long id, {{ entityName }} entity) {
+        return outputPort.findById(id)
+                .map(existing -> {
+                    entity.setId(id);
+                    return outputPort.save(entity);
+                })
+                .orElseThrow(() -> new RuntimeException("{{ entityName }} not found"));
+    }
+
+    @Override
+    public void delete(Long id) {
+        outputPort.deleteById(id);
+    }
+}

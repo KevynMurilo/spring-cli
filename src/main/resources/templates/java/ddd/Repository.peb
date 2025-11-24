@@ -1,0 +1,17 @@
+package {{ currentPackage }};
+
+import {{ pkg.aggregate }}.{{ entityName }}Aggregate;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface {{ entityName }}Repository {
+
+    List<{{ entityName }}Aggregate> findAll();
+
+    Optional<{{ entityName }}Aggregate> findById(Long id);
+
+    {{ entityName }}Aggregate save({{ entityName }}Aggregate aggregate);
+
+    void deleteById(Long id);
+}

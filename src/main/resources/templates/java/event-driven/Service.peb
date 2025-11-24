@@ -1,0 +1,48 @@
+package {{ currentPackage }};
+
+import {{ pkg.event }}.{{ entityName }}CreatedEvent;
+import {{ pkg.model }}.{{ entityName }};
+import {{ pkg.publisher }}.EventPublisher;
+import {{ pkg.repository }}.{{ entityName }}Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class {{ entityName }}Service {
+
+    private final {{ entityName }}Repository repository;
+    private final EventPublisher eventPublisher;
+
+    public List<{{ entityName }}> findAll() {
+        return repository.findAll();
+    }
+
+    public Optional<{{ entityName }}> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    public {{ entityName }} create({{ entityName }} entity) {
+        {{ entityName }} saved = repository.save(entity);
+
+        {{ entityName }}CreatedEvent event = {{ entityName }}CreatedEvent.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .description(saved.getDescription())
+                .occurredAt(LocalDateTime.now())
+                .build();
+
+        eventPublisher.publish(event);
+        return saved;
+    }
+
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
+}

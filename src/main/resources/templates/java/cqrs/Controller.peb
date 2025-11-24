@@ -1,0 +1,65 @@
+package {{ currentPackage }};
+
+import {{ pkg.command }}.Create{{ entityName }}Command;
+import {{ pkg['command-handler'] }}.{{ entityName }}CommandHandler;
+import {{ pkg['query-handler'] }}.{{ entityName }}QueryHandler;
+import {{ pkg.query }}.Get{{ entityName }}Query;
+import {{ pkg.model }}.{{ entityName }};
+
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+{% endif %}
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/{{ entityName | lower }}s")
+@RequiredArgsConstructor
+{% if features.enableSwagger %}
+@Tag(name = "{{ entityName }}", description = "{{ entityName }} CQRS APIs")
+{% endif %}
+public class {{ entityName }}Controller {
+
+    private final {{ entityName }}CommandHandler commandHandler;
+    private final {{ entityName }}QueryHandler queryHandler;
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Get all {{ entityName | lower }}s")
+    {% endif %}
+    @GetMapping
+    public ResponseEntity<List<{{ entityName }}>> getAll() {
+        return ResponseEntity.ok(queryHandler.handleGetAll());
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Get {{ entityName | lower }} by ID")
+    {% endif %}
+    @GetMapping("/{id}")
+    public ResponseEntity<{{ entityName }}> getById(@PathVariable Long id) {
+        return queryHandler.handle(new Get{{ entityName }}Query(id))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Create new {{ entityName | lower }}")
+    {% endif %}
+    @PostMapping
+    public ResponseEntity<{{ entityName }}> create(@RequestBody Create{{ entityName }}Command command) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(commandHandler.handle(command));
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Delete {{ entityName | lower }}")
+    {% endif %}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        commandHandler.handleDelete(id);
+        return ResponseEntity.noContent().build();
+    }
+}

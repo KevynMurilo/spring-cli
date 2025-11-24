@@ -1,0 +1,24 @@
+package {{ currentPackage }};
+
+import {{ pkg.model }}.{{ entityName }}Entity;
+import {{ pkg.valueobject }}.{{ entityName }}Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class {{ entityName }}Aggregate {
+
+    private {{ entityName }}Id id;
+    private {{ entityName }}Entity entity;
+
+    public void validate() {
+        if (entity == null || !entity.isValid()) {
+            throw new IllegalStateException("Invalid {{ entityName }}Aggregate");
+        }
+    }
+}

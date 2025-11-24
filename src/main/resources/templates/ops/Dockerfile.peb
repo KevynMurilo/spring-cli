@@ -1,0 +1,42 @@
+FROM eclipse-temurin:{{ javaVersion }}-jdk-alpine AS builder
+
+WORKDIR /app
+
+{% if buildTool == 'maven' %}
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+
+RUN ./mvnw clean package -DskipTests
+{% else %}
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY src src
+
+RUN ./gradlew build -x test
+{% endif %}
+
+FROM eclipse-temurin:{{ javaVersion }}-jre-alpine
+
+WORKDIR /app
+
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+{% if buildTool == 'maven' %}
+COPY --from=builder /app/target/*.jar app.jar
+{% else %}
+COPY --from=builder /app/build/libs/*.jar app.jar
+{% endif %}
+
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
