@@ -13,17 +13,18 @@ public class DependencyVersionResolver {
     private static final Map<String, LibraryVersions> VERSION_MAPPINGS = new HashMap<>();
 
     static {
-        // Spring Boot 3.3.x
-        VERSION_MAPPINGS.put("3.3", new LibraryVersions("0.12.6", "2.6.0", "1.6.2.Final"));
-
-        // Spring Boot 3.2.x
-        VERSION_MAPPINGS.put("3.2", new LibraryVersions("0.12.3", "2.3.0", "1.5.5.Final"));
-
-        // Spring Boot 3.1.x
-        VERSION_MAPPINGS.put("3.1", new LibraryVersions("0.11.5", "2.2.0", "1.5.5.Final"));
-
-        // Spring Boot 3.0.x
-        VERSION_MAPPINGS.put("3.0", new LibraryVersions("0.11.5", "2.0.4", "1.5.3.Final"));
+        VERSION_MAPPINGS.put("3.3", new LibraryVersions(
+                "0.12.6", "2.6.0", "1.6.2.Final", "3.13.0", "0.2.0"
+        ));
+        VERSION_MAPPINGS.put("3.2", new LibraryVersions(
+                "0.12.3", "2.3.0", "1.5.5.Final", "3.12.1", "0.2.0"
+        ));
+        VERSION_MAPPINGS.put("3.1", new LibraryVersions(
+                "0.11.5", "2.2.0", "1.5.5.Final", "3.11.0", "0.2.0"
+        ));
+        VERSION_MAPPINGS.put("3.0", new LibraryVersions(
+                "0.11.5", "2.0.4", "1.5.3.Final", "3.10.1", "0.2.0"
+        ));
     }
 
     public LibraryVersions resolveVersions(String springBootVersion) {
@@ -40,8 +41,7 @@ public class DependencyVersionResolver {
             return getLatestVersions();
         }
 
-        log.debug("Resolved library versions for Spring Boot {}: JJWT={}, SpringDoc={}, MapStruct={}",
-                springBootVersion, versions.jjwtVersion(), versions.springDocVersion(), versions.mapStructVersion());
+        log.debug("Resolved library versions for Spring Boot {}", springBootVersion);
 
         return versions;
     }
@@ -61,6 +61,8 @@ public class DependencyVersionResolver {
     public record LibraryVersions(
             String jjwtVersion,
             String springDocVersion,
-            String mapStructVersion
+            String mapStructVersion,
+            String mavenCompilerPluginVersion,
+            String lombokMapstructBindingVersion
     ) {}
 }
