@@ -125,7 +125,6 @@ public class UtilityCommands {
 
     public void configureInteractive() {
         consoleService.clearScreen();
-        consoleService.printBanner();
         consoleService.printInfo("\n╔══════════════════════════════════════════════════════════════════╗");
         consoleService.printInfo("║                    CONFIGURE CLI                                 ║");
         consoleService.printInfo("╚══════════════════════════════════════════════════════════════════╝\n");
@@ -134,36 +133,29 @@ public class UtilityCommands {
 
         UserConfig currentConfig = configService.loadConfig();
 
-        // Default Group ID
         String groupId = uiSelector.askString("Default Group ID", currentConfig.defaultGroupId());
 
-        // Default Java Version
         List<SelectorItem<String>> javaItems = List.of(
                 SelectorItem.of("Java 21 (Recommended)", "21"),
                 SelectorItem.of("Java 17", "17")
         );
         String javaVersion = selectFromList(javaItems, "Default Java Version:", currentConfig.defaultJavaVersion());
 
-        // Default Packaging
         List<SelectorItem<String>> packagingItems = List.of(
                 SelectorItem.of("JAR (Recommended)", "jar"),
                 SelectorItem.of("WAR", "war")
         );
         String packaging = selectFromList(packagingItems, "Default Packaging:", currentConfig.defaultPackaging());
 
-        // Default Architecture
         List<SelectorItem<Architecture>> archItems = Arrays.stream(Architecture.values())
                 .map(arch -> SelectorItem.of(arch.name() + " - " + arch.getDisplayName(), arch))
                 .collect(Collectors.toList());
         Architecture architecture = selectArchitecture(archItems, "Default Architecture:", currentConfig.defaultArchitecture());
 
-        // Default Output Directory
         String outputDir = uiSelector.askString("Default Output Directory", currentConfig.defaultOutputDir());
 
-        // Auto Open IDE
         boolean autoOpenIde = uiSelector.askYesNo("Auto-open IDE after generation?", currentConfig.autoOpenIde());
 
-        // Preferred IDE
         String preferredIde = currentConfig.preferredIde();
         if (autoOpenIde) {
             List<SelectorItem<String>> ideItems = List.of(
@@ -174,16 +166,12 @@ public class UtilityCommands {
             preferredIde = selectFromList(ideItems, "Preferred IDE:", currentConfig.preferredIde());
         }
 
-        // Generate README
         boolean generateReadme = uiSelector.askYesNo("Generate README.md by default?", currentConfig.generateReadme());
 
-        // Generate Gitignore
         boolean generateGitignore = uiSelector.askYesNo("Generate .gitignore by default?", currentConfig.generateGitignore());
 
-        // Use application.yml
         boolean useApplicationYml = uiSelector.askYesNo("Use application.yml instead of application.properties?", currentConfig.useApplicationYml());
 
-        // Criar nova configuração
         UserConfig newConfig = new UserConfig(
                 groupId,
                 javaVersion,
@@ -197,7 +185,6 @@ public class UtilityCommands {
                 generateGitignore
         );
 
-        // Salvar
         configService.saveConfig(newConfig);
 
         consoleService.clearScreen();

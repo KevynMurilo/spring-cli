@@ -35,7 +35,6 @@ public class PresetManagerCommand {
 
         while (running) {
             consoleService.clearScreen();
-            consoleService.printBanner();
             consoleService.printInfo("\n╔══════════════════════════════════════════════════════════════════╗");
             consoleService.printInfo("║                    PRESET MANAGER                                ║");
             consoleService.printInfo("╚══════════════════════════════════════════════════════════════════╝\n");

@@ -113,13 +113,10 @@ public class MainMenuCommand {
         consoleService.printSuccess("⚡ Fast project generation with minimal setup!\n");
 
         try {
-            // Pergunta o nome do projeto
             String artifactId = askInput("Project Name (e.g., my-api)", "my-project");
 
-            // Pergunta o groupId
             String groupId = askInput("Group ID", "com.example");
 
-            // Pergunta a arquitetura
             List<SelectorItem<String>> archItems = List.of(
                     SelectorItem.of("CLEAN       - Clean Architecture (Recommended)", "CLEAN"),
                     SelectorItem.of("HEXAGONAL   - Hexagonal (Ports & Adapters)", "HEXAGONAL"),
@@ -144,10 +141,8 @@ public class MainMenuCommand {
                 return;
             }
 
-            // Pergunta o diretório de saída
             String outputDir = askInput("Output Directory", ".");
 
-            // Gerar o projeto
             consoleService.printInfo("\n🚀 Generating project...\n");
             generateCommand.newProject(artifactId, groupId, architecture, outputDir);
 

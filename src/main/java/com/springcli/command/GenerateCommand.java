@@ -41,7 +41,6 @@ public class GenerateCommand {
     public void generate() {
         try {
             consoleService.clearScreen();
-            consoleService.printBanner();
             consoleService.printInfo("\nWelcome to Spring CLI Project Generator!\n");
 
             SpringMetadata metadata = metadataService.getMetadata();
