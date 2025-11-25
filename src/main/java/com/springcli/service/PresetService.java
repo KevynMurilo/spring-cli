@@ -39,6 +39,10 @@ public class PresetService {
                         Set.of("web", "data-jpa", "h2", "validation", "lombok", "devtools"),
                         new ProjectFeatures(true, true, true, true, true, false, false, false, true), true),
 
+                new Preset("GraphQL-API", "GraphQL API with Spring for GraphQL", Architecture.CLEAN, "21",
+                        Set.of("web", "graphql", "data-jpa", "h2", "validation", "lombok", "devtools"),
+                        new ProjectFeatures(true, false, true, true, true, false, false, false, true), true),
+
                 new Preset("Microservice", "Hexagonal architecture microservice", Architecture.HEXAGONAL, "21",
                         Set.of("web", "data-jpa", "postgresql", "cloud-eureka", "cloud-config-client", "actuator", "lombok"),
                         new ProjectFeatures(true, true, true, true, true, true, true, true, true), true),
@@ -70,26 +74,54 @@ public class PresetService {
     }
 
     public void savePreset(Preset preset) {
-        if (preset.builtIn()) throw new IllegalArgumentException("Cannot modify built-in presets");
         try {
-            String fileName = preset.name().toLowerCase().replace(" ", "-") + ".json";
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(presetDirPath.resolve(fileName).toFile(), preset);
+            // Cria uma versão custom (não built-in) para salvar
+            Preset customPreset = new Preset(
+                    preset.name(),
+                    preset.description(),
+                    preset.architecture(),
+                    preset.javaVersion(),
+                    preset.dependencies(),
+                    preset.features(),
+                    false // Sempre salva como custom
+            );
+
+            String fileName = sanitizeFileName(preset.name()) + ".json";
+            objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValue(presetDirPath.resolve(fileName).toFile(), customPreset);
             log.info("Preset '{}' saved successfully", preset.name());
         } catch (IOException e) {
             log.error("Failed to save preset", e);
+            throw new RuntimeException("Failed to save preset: " + e.getMessage(), e);
         }
+    }
+
+    public Optional<Preset> getPresetByName(String name) {
+        return getAllPresets().stream()
+                .filter(p -> p.name().equalsIgnoreCase(name))
+                .findFirst();
+    }
+
+    private String sanitizeFileName(String name) {
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9-_]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
     }
 
     public void deletePreset(String presetName) {
         try {
-            String fileName = presetName.toLowerCase().replace(" ", "-") + ".json";
+            String fileName = sanitizeFileName(presetName) + ".json";
             Path presetFile = presetDirPath.resolve(fileName);
             if (Files.exists(presetFile)) {
                 Files.delete(presetFile);
                 log.info("Preset '{}' deleted successfully", presetName);
+            } else {
+                log.warn("Preset file not found: {}", fileName);
             }
         } catch (IOException e) {
             log.error("Failed to delete preset", e);
+            throw new RuntimeException("Failed to delete preset: " + e.getMessage(), e);
         }
     }
 
