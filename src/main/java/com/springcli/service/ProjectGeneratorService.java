@@ -100,9 +100,12 @@ public class ProjectGeneratorService {
                         entry -> resolvePackagePath(context.packageName(), entry.getValue())
                 ));
 
+        // Fallbacks bidirecionais para compatibilidade entre arquiteturas
         packageMap.putIfAbsent("service", packageMap.get("usecase"));
+        packageMap.putIfAbsent("usecase", packageMap.get("service"));
         packageMap.putIfAbsent("repository-jpa", packageMap.get("repository-impl"));
-        packageMap.putIfAbsent("port-out", packageMap.get("repository"));
+        packageMap.putIfAbsent("repository", packageMap.get("port-out"));  // Para HEXAGONAL/CLEAN usar templates com 'repository'
+        packageMap.putIfAbsent("port-out", packageMap.get("repository"));  // Para MVC/LAYERED usar templates com 'port-out'
 
         fileProps.put("pkg", packageMap);
 
@@ -154,7 +157,7 @@ public class ProjectGeneratorService {
         if (!Files.exists(pomPath)) return;
 
         String pomContent = fileSystemService.readFile(pomPath);
-        String modifiedPom = pomManipulationService.injectDependencies(pomContent, config.features());
+        String modifiedPom = pomManipulationService.injectDependencies(pomContent, config.features(), config.springBootVersion());
         fileSystemService.writeFile(pomPath, modifiedPom);
     }
 
