@@ -1,0 +1,67 @@
+package {{ currentPackage }};
+
+{% if currentPackage != pkg['service'] %}
+import {{ pkg.service }}.{{ entityName }}Service;
+{% endif %}
+{% if currentPackage != pkg['model'] %}
+import {{ pkg.model }}.{{ entityName }};
+{% endif %}
+import org.springframework.web.bind.annotation.*;
+{% if enableSwagger %}
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+{% endif %}
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
+{% if enableSwagger %}
+@Tag(name = "{{ entityName }}", description = "{{ entityName }} management APIs")
+{% endif %}
+@RestController
+@RequestMapping("/api/{{ entityName | lower }}s")
+@RequiredArgsConstructor
+public class {{ entityName }}Controller {
+
+    private final {{ entityName }}Service service;
+
+    {% if enableSwagger %}
+    @Operation(summary = "Get all {{ entityName | lower }}s")
+    {% endif %}
+    @GetMapping
+    public List<{{ entityName }}> getAll() {
+        return service.findAll();
+    }
+
+    {% if enableSwagger %}
+    @Operation(summary = "Get {{ entityName | lower }} by ID")
+    {% endif %}
+    @GetMapping("/{id}")
+    public {{ entityName }} getById(@PathVariable Long id) {
+        return service.findById(id);
+    }
+
+    {% if enableSwagger %}
+    @Operation(summary = "Create new {{ entityName | lower }}")
+    {% endif %}
+    @PostMapping
+    public {{ entityName }} create(@RequestBody {{ entityName }} entity) {
+        return service.save(entity);
+    }
+
+    {% if enableSwagger %}
+    @Operation(summary = "Update {{ entityName | lower }}")
+    {% endif %}
+    @PutMapping("/{id}")
+    public {{ entityName }} update(@PathVariable Long id, @RequestBody {{ entityName }} entity) {
+        return service.update(id, entity);
+    }
+
+    {% if enableSwagger %}
+    @Operation(summary = "Delete {{ entityName | lower }}")
+    {% endif %}
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
+}

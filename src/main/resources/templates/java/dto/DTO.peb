@@ -1,0 +1,27 @@
+package {{ currentPackage }};
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.media.Schema;
+{% endif %}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+{% if features.enableSwagger %}
+@Schema(description = "{{ entityName }} data transfer object")
+{% endif %}
+public class {{ entityName }}DTO {
+
+    {% if features.enableSwagger %}
+    @Schema(description = "Unique identifier", example = "1")
+    {% endif %}
+    private Long id;
+
+    {% if features.enableSwagger %}
+    @Schema(description = "{{ entityName }} name", example = "Example name")
+    {% endif %}
+    private String name;
+}

@@ -1,0 +1,18 @@
+package {{ currentPackage }};
+
+{% if currentPackage != pkg['model'] %}
+import {{ pkg.model }}.{{ entityName }};
+{% endif %}
+import java.util.List;
+import java.util.Optional;
+
+public interface {{ entityName }}Repository {
+
+    List<{{ entityName }}> findAll();
+
+    Optional<{{ entityName }}> findById(Long id);
+
+    {{ entityName }} save({{ entityName }} entity);
+
+    void deleteById(Long id);
+}

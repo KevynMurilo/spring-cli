@@ -1,0 +1,27 @@
+package {{ currentPackage }};
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.media.Schema;
+{% endif %}
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+{% if features.enableSwagger %}
+@Schema(description = "Login request with credentials")
+{% endif %}
+public class LoginRequest {
+
+    {% if features.enableSwagger %}
+    @Schema(description = "Username", example = "admin", required = true)
+    {% endif %}
+    private String username;
+
+    {% if features.enableSwagger %}
+    @Schema(description = "Password", example = "password", required = true)
+    {% endif %}
+    private String password;
+}

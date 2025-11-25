@@ -1,0 +1,33 @@
+package {{ currentPackage }};
+
+{% if currentPackage != pkg['model'] %}
+import {{ pkg.model }}.{{ entityName }};
+{% endif %}
+{% if currentPackage != pkg['dto'] %}
+import {{ pkg.dto }}.{{ entityName }}DTO;
+{% endif %}
+import org.springframework.stereotype.Component;
+
+@Component
+public class {{ entityName }}Mapper {
+
+    public {{ entityName }}DTO toDTO({{ entityName }} entity) {
+        if (entity == null) {
+            return null;
+        }
+        return new {{ entityName }}DTO(
+            entity.getId(),
+            entity.getName()
+        );
+    }
+
+    public {{ entityName }} toEntity({{ entityName }}DTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        {{ entityName }} entity = new {{ entityName }}();
+        entity.setId(dto.getId());
+        entity.setName(dto.getName());
+        return entity;
+    }
+}

@@ -1,0 +1,72 @@
+package {{ currentPackage }};
+
+{% if currentPackage != pkg['usecase'] %}
+import {{ pkg.usecase }}.{{ entityName }}UseCase;
+{% endif %}
+{% if currentPackage != pkg['model'] %}
+import {{ pkg.model }}.{{ entityName }};
+{% endif %}
+{% if features.enableSwagger %}
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+{% endif %}
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/{{ entityName | lower }}s")
+@RequiredArgsConstructor
+{% if features.enableSwagger %}
+@Tag(name = "{{ entityName }}", description = "{{ entityName }} management APIs")
+{% endif %}
+public class {{ entityName }}Controller {
+
+    private final {{ entityName }}UseCase useCase;
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Get all {{ entityName | lower }}s")
+    {% endif %}
+    @GetMapping
+    public ResponseEntity<List<{{ entityName }}>> getAll() {
+        return ResponseEntity.ok(useCase.findAll());
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Get {{ entityName | lower }} by ID")
+    {% endif %}
+    @GetMapping("/{id}")
+    public ResponseEntity<{{ entityName }}> getById(@PathVariable Long id) {
+        return useCase.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Create new {{ entityName | lower }}")
+    {% endif %}
+    @PostMapping
+    public ResponseEntity<{{ entityName }}> create(@RequestBody {{ entityName }} entity) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(useCase.create(entity));
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Update {{ entityName | lower }}")
+    {% endif %}
+    @PutMapping("/{id}")
+    public ResponseEntity<{{ entityName }}> update(@PathVariable Long id, @RequestBody {{ entityName }} entity) {
+        return ResponseEntity.ok(useCase.update(id, entity));
+    }
+
+    {% if features.enableSwagger %}
+    @Operation(summary = "Delete {{ entityName | lower }}")
+    {% endif %}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        useCase.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+}
