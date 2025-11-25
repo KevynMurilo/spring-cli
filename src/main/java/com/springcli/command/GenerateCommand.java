@@ -49,8 +49,7 @@ public class GenerateCommand {
 
             Optional<Preset> selectedPreset = selectPreset();
 
-            // Verifica se foi cancelado
-            if (selectedPreset.isPresent() && selectedPreset.get() == null) {
+            if (selectedPreset == null) {
                 consoleService.printWarning("\n❌ Project generation cancelled.");
                 return;
             }
@@ -122,12 +121,10 @@ public class GenerateCommand {
 
         List<SelectorItem<String>> items = new ArrayList<>();
 
-        // Adiciona presets
         presets.forEach(preset ->
                 items.add(SelectorItem.of(preset.name() + " - " + preset.description(), preset.name()))
         );
 
-        // Opções extras
         items.add(SelectorItem.of("─────────────────────────────────────", "SEPARATOR"));
         items.add(SelectorItem.of("Start from scratch - Configure everything manually", "SCRATCH"));
         items.add(SelectorItem.of("🔙 Cancel - Return to main menu", "CANCEL"));
@@ -148,11 +145,11 @@ public class GenerateCommand {
         Optional<String> selected = context.getResultItem().map(SelectorItem::getItem);
 
         if (selected.isEmpty() || "CANCEL".equals(selected.get())) {
-            return Optional.of(null); // Retorna null dentro do Optional para indicar cancelamento
+            return null;
         }
 
         if ("SEPARATOR".equals(selected.get())) {
-            return selectPreset(); // Reexibe o menu se selecionou o separador
+            return selectPreset();
         }
 
         if ("SCRATCH".equals(selected.get())) {
