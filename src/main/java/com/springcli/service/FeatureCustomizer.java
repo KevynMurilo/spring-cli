@@ -116,7 +116,7 @@ public class FeatureCustomizer {
         return new ProjectFeatures(
                 enableJwt,
                 enableSwagger,
-                false, // enableCors
+                false,
                 enableExceptionHandler,
                 enableMapStruct,
                 enableDocker,
