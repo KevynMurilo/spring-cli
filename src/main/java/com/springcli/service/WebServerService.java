@@ -320,7 +320,7 @@ public class WebServerService {
                     "projectPath", (Object) null
             );
             String json = objectMapper.writeValueAsString(response);
-            sendJsonResponse(exchange, 200, json);
+            sendJsonResponse(exchange, 500, json);
         }
     }
 
