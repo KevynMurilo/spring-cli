@@ -2,9 +2,12 @@ package com.springcli.service;
 
 import com.springcli.model.ProjectConfig;
 import com.springcli.model.ProjectFeatures;
+import com.springcli.model.rules.DependencyRule;
+import com.springcli.model.rules.MavenDependency;
 import com.springcli.service.DependencyVersionResolver.LibraryVersions;
 import com.springcli.service.config.BuildPluginConfigurationService;
 import com.springcli.service.config.BuildPluginConfigurationService.MavenPlugin;
+import com.springcli.service.config.DependencyConfigurationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +23,7 @@ public class PomManipulationService {
 
     private final DependencyVersionResolver versionResolver;
     private final BuildPluginConfigurationService pluginConfigService;
+    private final DependencyConfigurationRegistry configRegistry;
 
     public String enhancePomFile(String pomContent, ProjectConfig config) {
         log.info("Enhancing pom.xml with complete auto-configuration");
@@ -147,16 +151,10 @@ public class PomManipulationService {
 
         StringBuilder injections = new StringBuilder();
 
-        if (features.enableJwt()) {
-            injections.append(getJwtDependencies(versions.jjwtVersion()));
-        }
-
-        if (features.enableSwagger()) {
-            injections.append(getSwaggerDependency(versions.springDocVersion()));
-        }
-
         if (features.enableMapStruct()) {
-            injections.append(getMapStructDependency(versions.mapStructVersion()));
+            configRegistry.getRule("mapstruct").ifPresent(rule -> {
+                injections.append(generateMavenDependenciesXml(rule.build().maven().dependencies()));
+            });
         }
 
         if (injections.length() > 0) {
@@ -164,6 +162,26 @@ public class PomManipulationService {
         }
 
         return pomContent;
+    }
+
+    private String generateMavenDependenciesXml(List<MavenDependency> dependencies) {
+        StringBuilder xml = new StringBuilder();
+        for (MavenDependency dep : dependencies) {
+            xml.append("        <dependency>\n");
+            xml.append("            <groupId>").append(dep.groupId()).append("</groupId>\n");
+            xml.append("            <artifactId>").append(dep.artifactId()).append("</artifactId>\n");
+
+            if (dep.version() != null && !dep.version().isEmpty()) {
+                xml.append("            <version>").append(dep.version()).append("</version>\n");
+            }
+
+            if (dep.scope() != null && !dep.scope().isEmpty()) {
+                xml.append("            <scope>").append(dep.scope()).append("</scope>\n");
+            }
+
+            xml.append("        </dependency>\n");
+        }
+        return xml.toString();
     }
 
     private int findLastDependenciesEndTag(String pomContent) {
@@ -420,48 +438,6 @@ public class PomManipulationService {
                 .replaceAll("</plugin>\\n+<plugin>", "</plugin>\\n\\t\\t\\t<plugin>")
                 .replaceAll("</property>\\n+<property>", "</property>\\n\\t\\t<property>")
                 .trim();
-    }
-
-    private String getJwtDependencies(String jjwtVersion) {
-        return """
-                    <dependency>
-                        <groupId>io.jsonwebtoken</groupId>
-                        <artifactId>jjwt-api</artifactId>
-                        <version>%s</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>io.jsonwebtoken</groupId>
-                        <artifactId>jjwt-impl</artifactId>
-                        <version>%s</version>
-                        <scope>runtime</scope>
-                    </dependency>
-                    <dependency>
-                        <groupId>io.jsonwebtoken</groupId>
-                        <artifactId>jjwt-jackson</artifactId>
-                        <version>%s</version>
-                        <scope>runtime</scope>
-                    </dependency>
-                """.formatted(jjwtVersion, jjwtVersion, jjwtVersion);
-    }
-
-    private String getSwaggerDependency(String springDocVersion) {
-        return """
-                    <dependency>
-                        <groupId>org.springdoc</groupId>
-                        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                        <version>%s</version>
-                    </dependency>
-                """.formatted(springDocVersion);
-    }
-
-    private String getMapStructDependency(String mapStructVersion) {
-        return """
-                    <dependency>
-                        <groupId>org.mapstruct</groupId>
-                        <artifactId>mapstruct</artifactId>
-                        <version>%s</version>
-                    </dependency>
-                """.formatted(mapStructVersion);
     }
 
     private record AnnotationProcessor(String groupId, String artifactId, String version, String classifier) {}

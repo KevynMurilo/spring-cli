@@ -1,0 +1,989 @@
+[
+  {
+    "id": "lombok",
+    "category": "TOOL",
+    "priority": 10,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.projectlombok",
+            "artifactId": "lombok",
+            "scope": "provided"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [],
+        "compileOnly": ["org.projectlombok:lombok"],
+        "runtimeOnly": [],
+        "annotationProcessor": ["org.projectlombok:lombok"],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": []
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "mapstruct",
+    "category": "TOOL",
+    "priority": 5,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.mapstruct",
+            "artifactId": "mapstruct",
+            "version": "1.5.5.Final"
+          }
+        ],
+        "plugins": [
+          {
+            "groupId": "org.apache.maven.plugins",
+            "artifactId": "maven-compiler-plugin",
+            "executionGoal": "compile"
+          }
+        ],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.mapstruct:mapstruct:1.5.5.Final"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": ["org.mapstruct:mapstruct-processor:1.5.5.Final"],
+        "compilerOptions": [
+          "-Amapstruct.defaultComponentModel=spring",
+          "-Amapstruct.unmappedTargetPolicy=IGNORE"
+        ]
+      }
+    },
+    "runtime": {
+      "properties": []
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/mapper/package-info.java",
+          "content": "package {{basePackage}}.mapper;"
+        }
+      ]
+    }
+  },
+  {
+    "id": "postgresql",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-jpa"
+          },
+          {
+            "groupId": "org.postgresql",
+            "artifactId": "postgresql",
+            "scope": "runtime"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-jpa"],
+        "compileOnly": [],
+        "runtimeOnly": ["org.postgresql:postgresql"],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.datasource.url",
+          "value": "jdbc:postgresql://postgres:5432/mydb"
+        },
+        {
+          "key": "spring.datasource.username",
+          "value": "postgres"
+        },
+        {
+          "key": "spring.datasource.password",
+          "value": "postgres"
+        },
+        {
+          "key": "spring.datasource.driver-class-name",
+          "value": "org.postgresql.Driver"
+        },
+        {
+          "key": "spring.jpa.database-platform",
+          "value": "org.hibernate.dialect.PostgreSQLDialect"
+        },
+        {
+          "key": "spring.jpa.hibernate.ddl-auto",
+          "value": "validate"
+        },
+        {
+          "key": "spring.jpa.show-sql",
+          "value": "false"
+        },
+        {
+          "key": "spring.jpa.properties.hibernate.format_sql",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "postgres",
+        "image": "postgres:16-alpine",
+        "ports": ["5432:5432"],
+        "environment": {
+          "POSTGRES_DB": "mydb",
+          "POSTGRES_USER": "postgres",
+          "POSTGRES_PASSWORD": "postgres"
+        },
+        "volumes": ["postgres_data:/var/lib/postgresql/data"],
+        "healthcheck": {
+          "test": ["CMD-SHELL", "pg_isready -U postgres"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/entity/package-info.java",
+          "content": "package {{basePackage}}.entity;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/repository/package-info.java",
+          "content": "package {{basePackage}}.repository;"
+        }
+      ]
+    }
+  },
+  {
+    "id": "mysql",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-jpa"
+          },
+          {
+            "groupId": "com.mysql",
+            "artifactId": "mysql-connector-j",
+            "scope": "runtime"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-jpa"],
+        "compileOnly": [],
+        "runtimeOnly": ["com.mysql:mysql-connector-j"],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.datasource.url",
+          "value": "jdbc:mysql://mysql:3306/mydb?useSSL=false&allowPublicKeyRetrieval=true"
+        },
+        {
+          "key": "spring.datasource.username",
+          "value": "root"
+        },
+        {
+          "key": "spring.datasource.password",
+          "value": "root"
+        },
+        {
+          "key": "spring.datasource.driver-class-name",
+          "value": "com.mysql.cj.jdbc.Driver"
+        },
+        {
+          "key": "spring.jpa.database-platform",
+          "value": "org.hibernate.dialect.MySQLDialect"
+        },
+        {
+          "key": "spring.jpa.hibernate.ddl-auto",
+          "value": "validate"
+        },
+        {
+          "key": "spring.jpa.show-sql",
+          "value": "false"
+        },
+        {
+          "key": "spring.jpa.properties.hibernate.format_sql",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "mysql",
+        "image": "mysql:8.0",
+        "ports": ["3306:3306"],
+        "environment": {
+          "MYSQL_DATABASE": "mydb",
+          "MYSQL_ROOT_PASSWORD": "root"
+        },
+        "volumes": ["mysql_data:/var/lib/mysql"],
+        "healthcheck": {
+          "test": ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/entity/package-info.java",
+          "content": "package {{basePackage}}.entity;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/repository/package-info.java",
+          "content": "package {{basePackage}}.repository;"
+        }
+      ]
+    }
+  },
+  {
+    "id": "h2",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-jpa"
+          },
+          {
+            "groupId": "com.h2database",
+            "artifactId": "h2",
+            "scope": "runtime"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-jpa"],
+        "compileOnly": [],
+        "runtimeOnly": ["com.h2database:h2"],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.datasource.url",
+          "value": "jdbc:h2:mem:testdb"
+        },
+        {
+          "key": "spring.datasource.driver-class-name",
+          "value": "org.h2.Driver"
+        },
+        {
+          "key": "spring.datasource.username",
+          "value": "sa"
+        },
+        {
+          "key": "spring.datasource.password",
+          "value": ""
+        },
+        {
+          "key": "spring.h2.console.enabled",
+          "value": "true"
+        },
+        {
+          "key": "spring.h2.console.path",
+          "value": "/h2-console"
+        },
+        {
+          "key": "spring.jpa.database-platform",
+          "value": "org.hibernate.dialect.H2Dialect"
+        },
+        {
+          "key": "spring.jpa.hibernate.ddl-auto",
+          "value": "create-drop"
+        },
+        {
+          "key": "spring.jpa.show-sql",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/resources/data.sql",
+          "content": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "mongodb",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-mongodb"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-mongodb"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.data.mongodb.uri",
+          "value": "mongodb://mongo:27017/mydb"
+        },
+        {
+          "key": "spring.data.mongodb.database",
+          "value": "mydb"
+        },
+        {
+          "key": "spring.data.mongodb.auto-index-creation",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "mongo",
+        "image": "mongo:7.0",
+        "ports": ["27017:27017"],
+        "environment": {
+          "MONGO_INITDB_DATABASE": "mydb"
+        },
+        "volumes": ["mongo_data:/data/db"],
+        "healthcheck": {
+          "test": ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/document/package-info.java",
+          "content": "package {{basePackage}}.document;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/repository/package-info.java",
+          "content": "package {{basePackage}}.repository;"
+        }
+      ]
+    }
+  },
+  {
+    "id": "redis",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-redis"
+          },
+          {
+            "groupId": "io.lettuce",
+            "artifactId": "lettuce-core"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [
+          "org.springframework.boot:spring-boot-starter-data-redis",
+          "io.lettuce:lettuce-core"
+        ],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.data.redis.host",
+          "value": "redis"
+        },
+        {
+          "key": "spring.data.redis.port",
+          "value": "6379"
+        },
+        {
+          "key": "spring.data.redis.timeout",
+          "value": "60000"
+        },
+        {
+          "key": "spring.cache.type",
+          "value": "redis"
+        },
+        {
+          "key": "spring.cache.redis.time-to-live",
+          "value": "600000"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "redis",
+        "image": "redis:7-alpine",
+        "ports": ["6379:6379"],
+        "environment": {},
+        "volumes": ["redis_data:/data"],
+        "healthcheck": {
+          "test": ["CMD", "redis-cli", "ping"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/config/RedisConfig.java",
+          "content": "package {{basePackage}}.config;\n\nimport org.springframework.cache.annotation.EnableCaching;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.data.redis.connection.RedisConnectionFactory;\nimport org.springframework.data.redis.core.RedisTemplate;\nimport org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;\nimport org.springframework.data.redis.serializer.StringRedisSerializer;\n\n@Configuration\n@EnableCaching\npublic class RedisConfig {\n\n    @Bean\n    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {\n        RedisTemplate<String, Object> template = new RedisTemplate<>();\n        template.setConnectionFactory(connectionFactory);\n        template.setKeySerializer(new StringRedisSerializer());\n        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());\n        template.setHashKeySerializer(new StringRedisSerializer());\n        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());\n        return template;\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "flyway",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.flywaydb",
+            "artifactId": "flyway-core"
+          },
+          {
+            "groupId": "org.flywaydb",
+            "artifactId": "flyway-database-postgresql"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [
+          "org.flywaydb:flyway-core",
+          "org.flywaydb:flyway-database-postgresql"
+        ],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.flyway.enabled",
+          "value": "true"
+        },
+        {
+          "key": "spring.flyway.locations",
+          "value": "classpath:db/migration"
+        },
+        {
+          "key": "spring.flyway.baseline-on-migrate",
+          "value": "true"
+        },
+        {
+          "key": "spring.flyway.validate-on-migrate",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/resources/db/migration/.gitkeep",
+          "content": ""
+        },
+        {
+          "path": "src/main/resources/db/migration/V1__initial_schema.sql",
+          "content": ""
+        }
+      ]
+    }
+  },
+  {
+    "id": "security",
+    "category": "SECURITY",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-security"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-security"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.security.user.name",
+          "value": "admin"
+        },
+        {
+          "key": "spring.security.user.password",
+          "value": "admin"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/config/SecurityConfig.java",
+          "content": "package {{basePackage}}.config;\n\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\nimport org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;\nimport org.springframework.security.web.SecurityFilterChain;\n\n@Configuration\n@EnableWebSecurity\npublic class SecurityConfig {\n\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        http\n            .csrf(AbstractHttpConfigurer::disable)\n            .authorizeHttpRequests(auth -> auth\n                .requestMatchers(\"/actuator/**\", \"/h2-console/**\").permitAll()\n                .anyRequest().permitAll()\n            )\n            .headers(headers -> headers\n                .frameOptions(frame -> frame.sameOrigin())\n            );\n        \n        return http.build();\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "web",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-web"
+          },
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-validation"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [
+          "org.springframework.boot:spring-boot-starter-web",
+          "org.springframework.boot:spring-boot-starter-validation"
+        ],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "server.port",
+          "value": "8080"
+        },
+        {
+          "key": "spring.application.name",
+          "value": "my-app"
+        },
+        {
+          "key": "spring.jackson.serialization.indent-output",
+          "value": "true"
+        },
+        {
+          "key": "spring.jackson.serialization.write-dates-as-timestamps",
+          "value": "false"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/controller/package-info.java",
+          "content": "package {{basePackage}}.controller;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/dto/package-info.java",
+          "content": "package {{basePackage}}.dto;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/service/package-info.java",
+          "content": "package {{basePackage}}.service;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/exception/GlobalExceptionHandler.java",
+          "content": "package {{basePackage}}.exception;\n\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.MethodArgumentNotValidException;\nimport org.springframework.web.bind.annotation.ExceptionHandler;\nimport org.springframework.web.bind.annotation.RestControllerAdvice;\n\nimport java.time.LocalDateTime;\nimport java.util.HashMap;\nimport java.util.Map;\n\n@RestControllerAdvice\npublic class GlobalExceptionHandler {\n\n    @ExceptionHandler(MethodArgumentNotValidException.class)\n    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {\n        Map<String, Object> errors = new HashMap<>();\n        errors.put(\"timestamp\", LocalDateTime.now());\n        errors.put(\"status\", HttpStatus.BAD_REQUEST.value());\n        \n        Map<String, String> fieldErrors = new HashMap<>();\n        ex.getBindingResult().getFieldErrors().forEach(error -> \n            fieldErrors.put(error.getField(), error.getDefaultMessage())\n        );\n        errors.put(\"errors\", fieldErrors);\n        \n        return ResponseEntity.badRequest().body(errors);\n    }\n\n    @ExceptionHandler(Exception.class)\n    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {\n        Map<String, Object> error = new HashMap<>();\n        error.put(\"timestamp\", LocalDateTime.now());\n        error.put(\"status\", HttpStatus.INTERNAL_SERVER_ERROR.value());\n        error.put(\"message\", ex.getMessage());\n        \n        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "actuator",
+    "category": "OBSERVABILITY",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-actuator"
+          },
+          {
+            "groupId": "io.micrometer",
+            "artifactId": "micrometer-registry-prometheus"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [
+          "org.springframework.boot:spring-boot-starter-actuator",
+          "io.micrometer:micrometer-registry-prometheus"
+        ],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "management.endpoints.web.exposure.include",
+          "value": "health,info,metrics,prometheus"
+        },
+        {
+          "key": "management.endpoint.health.show-details",
+          "value": "always"
+        },
+        {
+          "key": "management.metrics.export.prometheus.enabled",
+          "value": "true"
+        },
+        {
+          "key": "management.metrics.tags.application",
+          "value": "${spring.application.name}"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "kafka",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.kafka",
+            "artifactId": "spring-kafka"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.kafka:spring-kafka"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.kafka.bootstrap-servers",
+          "value": "kafka:9092"
+        },
+        {
+          "key": "spring.kafka.consumer.group-id",
+          "value": "my-app-group"
+        },
+        {
+          "key": "spring.kafka.consumer.auto-offset-reset",
+          "value": "earliest"
+        },
+        {
+          "key": "spring.kafka.consumer.key-deserializer",
+          "value": "org.apache.kafka.common.serialization.StringDeserializer"
+        },
+        {
+          "key": "spring.kafka.consumer.value-deserializer",
+          "value": "org.springframework.kafka.support.serializer.JsonDeserializer"
+        },
+        {
+          "key": "spring.kafka.consumer.properties.spring.json.trusted.packages",
+          "value": "*"
+        },
+        {
+          "key": "spring.kafka.producer.key-serializer",
+          "value": "org.apache.kafka.common.serialization.StringSerializer"
+        },
+        {
+          "key": "spring.kafka.producer.value-serializer",
+          "value": "org.springframework.kafka.support.serializer.JsonSerializer"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "kafka",
+        "image": "confluentinc/cp-kafka:7.6.0",
+        "ports": ["9092:9092"],
+        "environment": {
+          "KAFKA_BROKER_ID": "1",
+          "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+          "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://kafka:9092",
+          "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": "1",
+          "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR": "1",
+          "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR": "1"
+        },
+        "volumes": ["kafka_data:/var/lib/kafka/data"],
+        "depends_on": ["zookeeper"],
+        "healthcheck": {
+          "test": ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/config/KafkaConfig.java",
+          "content": "package {{basePackage}}.config;\n\nimport org.apache.kafka.clients.admin.NewTopic;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.kafka.config.TopicBuilder;\n\n@Configuration\npublic class KafkaConfig {\n\n    @Bean\n    public NewTopic exampleTopic() {\n        return TopicBuilder.name(\"example-topic\")\n                .partitions(3)\n                .replicas(1)\n                .build();\n    }\n}\n"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/messaging/package-info.java",
+          "content": "package {{basePackage}}.messaging;"
+        }
+      ]
+    }
+  },
+  {
+    "id": "kafka-zookeeper",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": []
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "zookeeper",
+        "image": "confluentinc/cp-zookeeper:7.6.0",
+        "ports": ["2181:2181"],
+        "environment": {
+          "ZOOKEEPER_CLIENT_PORT": "2181",
+          "ZOOKEEPER_TICK_TIME": "2000"
+        },
+        "volumes": ["zookeeper_data:/var/lib/zookeeper/data", "zookeeper_log:/var/lib/zookeeper/log"],
+        "healthcheck": {
+          "test": ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "zipkin",
+    "category": "OBSERVABILITY",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "io.micrometer",
+            "artifactId": "micrometer-tracing-bridge-brave"
+          },
+          {
+            "groupId": "io.zipkin.reporter2",
+            "artifactId": "zipkin-reporter-brave"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [
+          "io.micrometer:micrometer-tracing-bridge-brave",
+          "io.zipkin.reporter2:zipkin-reporter-brave"
+        ],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "management.tracing.sampling.probability",
+          "value": "1.0"
+        },
+        {
+          "key": "management.zipkin.tracing.endpoint",
+          "value": "http://zipkin:9411/api/v2/spans"
+        },
+        {
+          "key": "management.tracing.enabled",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "zipkin",
+        "image": "openzipkin/zipkin:latest",
+        "ports": ["9411:9411"],
+        "environment": {},
+        "volumes": [],
+        "healthcheck": {
+          "test": ["CMD", "wget", "--spider", "-q", "http://localhost:9411/health"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "graalvm",
+    "category": "TOOL",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [],
+        "plugins": [
+          {
+            "groupId": "org.graalvm.buildtools",
+            "artifactId": "native-maven-plugin",
+            "executionGoal": "compile"
+          }
+        ],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": [],
+        "plugins": ["org.graalvm.buildtools.native"]
+      }
+    },
+    "runtime": {
+      "properties": []
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/resources/META-INF/native-image/reflect-config.json",
+          "content": "[\n  {\n    \"name\": \"com.example.YourClass\",\n    \"allDeclaredConstructors\": true,\n    \"allPublicConstructors\": true,\n    \"allDeclaredMethods\": true,\n    \"allPublicMethods\": true\n  }\n]\n"
+        }
+      ]
+    }
+  }
+]

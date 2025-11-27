@@ -2,9 +2,11 @@ package com.springcli.service;
 
 import com.springcli.model.ProjectConfig;
 import com.springcli.model.ProjectFeatures;
+import com.springcli.model.rules.GradleConfig;
 import com.springcli.service.DependencyVersionResolver.LibraryVersions;
 import com.springcli.service.config.BuildPluginConfigurationService;
 import com.springcli.service.config.BuildPluginConfigurationService.GradlePlugin;
+import com.springcli.service.config.DependencyConfigurationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class GradleManipulationService {
 
     private final DependencyVersionResolver versionResolver;
     private final BuildPluginConfigurationService pluginConfigService;
+    private final DependencyConfigurationRegistry configRegistry;
 
     public String enhanceGradleFile(String buildContent, ProjectConfig config) {
         log.info("Enhancing build.gradle with complete auto-configuration");
@@ -98,16 +101,10 @@ public class GradleManipulationService {
 
         StringBuilder injections = new StringBuilder();
 
-        if (features.enableJwt()) {
-            injections.append(getJwtDependencies(versions.jjwtVersion()));
-        }
-
-        if (features.enableSwagger()) {
-            injections.append(getSwaggerDependency(versions.springDocVersion()));
-        }
-
         if (features.enableMapStruct()) {
-            injections.append(getMapStructDependency(versions));
+            configRegistry.getRule("mapstruct").ifPresent(rule -> {
+                injections.append(generateGradleDependencies(rule.build().gradle()));
+            });
         }
 
         if (injections.length() > 0) {
@@ -115,6 +112,36 @@ public class GradleManipulationService {
         }
 
         return buildContent;
+    }
+
+    private String generateGradleDependencies(GradleConfig gradle) {
+        StringBuilder deps = new StringBuilder();
+
+        if (gradle.implementation() != null) {
+            gradle.implementation().forEach(dep ->
+                deps.append("    implementation \"").append(dep).append("\"\n")
+            );
+        }
+
+        if (gradle.compileOnly() != null) {
+            gradle.compileOnly().forEach(dep ->
+                deps.append("    compileOnly \"").append(dep).append("\"\n")
+            );
+        }
+
+        if (gradle.runtimeOnly() != null) {
+            gradle.runtimeOnly().forEach(dep ->
+                deps.append("    runtimeOnly \"").append(dep).append("\"\n")
+            );
+        }
+
+        if (gradle.annotationProcessor() != null) {
+            gradle.annotationProcessor().forEach(dep ->
+                deps.append("    annotationProcessor \"").append(dep).append("\"\n")
+            );
+        }
+
+        return deps.toString();
     }
 
     private String configureAnnotationProcessors(String buildContent, ProjectConfig config, LibraryVersions versions) {
@@ -247,26 +274,6 @@ public class GradleManipulationService {
         return buildContent
                 .replaceAll("\n{3,}", "\n\n")
                 .replaceAll(" {2,}", " ");
-    }
-
-    private String getJwtDependencies(String jjwtVersion) {
-        return """
-                    implementation "io.jsonwebtoken:jjwt-api:%s"
-                    runtimeOnly "io.jsonwebtoken:jjwt-impl:%s"
-                    runtimeOnly "io.jsonwebtoken:jjwt-jackson:%s"
-                """.formatted(jjwtVersion, jjwtVersion, jjwtVersion);
-    }
-
-    private String getSwaggerDependency(String springDocVersion) {
-        return """
-                    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:%s"
-                """.formatted(springDocVersion);
-    }
-
-    private String getMapStructDependency(LibraryVersions versions) {
-        return """
-                    implementation "org.mapstruct:mapstruct:%s"
-                """.formatted(versions.mapStructVersion());
     }
 
     private record AnnotationProcessor(String groupId, String artifactId, String version, String classifier) {}
