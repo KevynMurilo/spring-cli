@@ -9,6 +9,9 @@
       },
       {
         "pattern": ".*\\.yml"
+      },
+      {
+        "pattern": "dependency-rules.json"
       }
     ]
   }

@@ -3,14 +3,15 @@ package com.springcli.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springcli.model.rules.DependencyRule;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RegisterReflectionForBinding(DependencyRule.class)
 public class DependencyRulesService {
 
     private final Map<String, DependencyRule> rulesCache;
