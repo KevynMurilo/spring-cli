@@ -985,5 +985,120 @@
         }
       ]
     }
+  },
+  {
+    "id": "jwt",
+    "category": "SECURITY",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "io.jsonwebtoken",
+            "artifactId": "jjwt-api",
+            "version": "0.12.6"
+          },
+          {
+            "groupId": "io.jsonwebtoken",
+            "artifactId": "jjwt-impl",
+            "version": "0.12.6",
+            "scope": "runtime"
+          },
+          {
+            "groupId": "io.jsonwebtoken",
+            "artifactId": "jjwt-jackson",
+            "version": "0.12.6",
+            "scope": "runtime"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["io.jsonwebtoken:jjwt-api:0.12.6"],
+        "compileOnly": [],
+        "runtimeOnly": [
+          "io.jsonwebtoken:jjwt-impl:0.12.6",
+          "io.jsonwebtoken:jjwt-jackson:0.12.6"
+        ],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "jwt.secret",
+          "value": "your-secret-key-change-this-in-production"
+        },
+        {
+          "key": "jwt.expiration",
+          "value": "86400000"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/security/JwtService.java",
+          "content": "package {{basePackage}}.security;\n\nimport io.jsonwebtoken.Claims;\nimport io.jsonwebtoken.Jwts;\nimport io.jsonwebtoken.SignatureAlgorithm;\nimport io.jsonwebtoken.security.Keys;\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.security.core.userdetails.UserDetails;\nimport org.springframework.stereotype.Service;\n\nimport javax.crypto.SecretKey;\nimport java.nio.charset.StandardCharsets;\nimport java.util.Date;\nimport java.util.HashMap;\nimport java.util.Map;\nimport java.util.function.Function;\n\n@Service\npublic class JwtService {\n\n    @Value(\"${jwt.secret}\")\n    private String secret;\n\n    @Value(\"${jwt.expiration}\")\n    private Long expiration;\n\n    public String extractUsername(String token) {\n        return extractClaim(token, Claims::getSubject);\n    }\n\n    public Date extractExpiration(String token) {\n        return extractClaim(token, Claims::getExpiration);\n    }\n\n    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {\n        final Claims claims = extractAllClaims(token);\n        return claimsResolver.apply(claims);\n    }\n\n    private Claims extractAllClaims(String token) {\n        return Jwts.parserBuilder()\n                .setSigningKey(getSignKey())\n                .build()\n                .parseClaimsJws(token)\n                .getBody();\n    }\n\n    private Boolean isTokenExpired(String token) {\n        return extractExpiration(token).before(new Date());\n    }\n\n    public Boolean validateToken(String token, UserDetails userDetails) {\n        final String username = extractUsername(token);\n        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));\n    }\n\n    public String generateToken(String userName) {\n        Map<String, Object> claims = new HashMap<>();\n        return createToken(claims, userName);\n    }\n\n    private String createToken(Map<String, Object> claims, String userName) {\n        return Jwts.builder()\n                .setClaims(claims)\n                .setSubject(userName)\n                .setIssuedAt(new Date(System.currentTimeMillis()))\n                .setExpiration(new Date(System.currentTimeMillis() + expiration))\n                .signWith(getSignKey(), SignatureAlgorithm.HS256)\n                .compact();\n    }\n\n    private SecretKey getSignKey() {\n        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);\n        return Keys.hmacShaKeyFor(keyBytes);\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "swagger",
+    "category": "TOOL",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springdoc",
+            "artifactId": "springdoc-openapi-starter-webmvc-ui",
+            "version": "2.6.0"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "springdoc.api-docs.path",
+          "value": "/api-docs"
+        },
+        {
+          "key": "springdoc.swagger-ui.path",
+          "value": "/swagger-ui.html"
+        },
+        {
+          "key": "springdoc.swagger-ui.operationsSorter",
+          "value": "method"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/config/SwaggerConfig.java",
+          "content": "package {{basePackage}}.config;\n\nimport io.swagger.v3.oas.models.OpenAPI;\nimport io.swagger.v3.oas.models.info.Contact;\nimport io.swagger.v3.oas.models.info.Info;\nimport io.swagger.v3.oas.models.info.License;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\n@Configuration\npublic class SwaggerConfig {\n\n    @Bean\n    public OpenAPI customOpenAPI() {\n        return new OpenAPI()\n                .info(new Info()\n                        .title(\"API Documentation\")\n                        .version(\"1.0.0\")\n                        .description(\"REST API documentation\")\n                        .contact(new Contact()\n                                .name(\"API Support\")\n                                .email(\"support@example.com\"))\n                        .license(new License()\n                                .name(\"Apache 2.0\")\n                                .url(\"https://www.apache.org/licenses/LICENSE-2.0\")));\n    }\n}\n"
+        }
+      ]
+    }
   }
 ]

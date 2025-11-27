@@ -99,11 +99,15 @@ public class GradleManipulationService {
             return buildContent;
         }
 
+        List<String> featureDependencies = getActiveFeaturesAsDependencyIds(features);
+
         StringBuilder injections = new StringBuilder();
 
-        if (features.enableMapStruct()) {
-            configRegistry.getRule("mapstruct").ifPresent(rule -> {
-                injections.append(generateGradleDependencies(rule.build().gradle()));
+        for (String dependencyId : featureDependencies) {
+            configRegistry.getRule(dependencyId).ifPresent(rule -> {
+                if (rule.build() != null && rule.build().gradle() != null) {
+                    injections.append(generateGradleDependencies(rule.build().gradle()));
+                }
             });
         }
 
@@ -112,6 +116,22 @@ public class GradleManipulationService {
         }
 
         return buildContent;
+    }
+
+    private List<String> getActiveFeaturesAsDependencyIds(ProjectFeatures features) {
+        List<String> dependencies = new ArrayList<>();
+
+        if (features.enableJwt()) {
+            dependencies.add("jwt");
+        }
+        if (features.enableSwagger()) {
+            dependencies.add("swagger");
+        }
+        if (features.enableMapStruct()) {
+            dependencies.add("mapstruct");
+        }
+
+        return dependencies;
     }
 
     private String generateGradleDependencies(GradleConfig gradle) {

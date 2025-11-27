@@ -149,11 +149,17 @@ public class PomManipulationService {
             return pomContent;
         }
 
+        List<String> featureDependencies = getActiveFeaturesAsDependencyIds(features);
+
         StringBuilder injections = new StringBuilder();
 
-        if (features.enableMapStruct()) {
-            configRegistry.getRule("mapstruct").ifPresent(rule -> {
-                injections.append(generateMavenDependenciesXml(rule.build().maven().dependencies()));
+        for (String dependencyId : featureDependencies) {
+            configRegistry.getRule(dependencyId).ifPresent(rule -> {
+                if (rule.build() != null && rule.build().maven() != null &&
+                    rule.build().maven().dependencies() != null &&
+                    !rule.build().maven().dependencies().isEmpty()) {
+                    injections.append(generateMavenDependenciesXml(rule.build().maven().dependencies()));
+                }
             });
         }
 
@@ -162,6 +168,22 @@ public class PomManipulationService {
         }
 
         return pomContent;
+    }
+
+    private List<String> getActiveFeaturesAsDependencyIds(ProjectFeatures features) {
+        List<String> dependencies = new ArrayList<>();
+
+        if (features.enableJwt()) {
+            dependencies.add("jwt");
+        }
+        if (features.enableSwagger()) {
+            dependencies.add("swagger");
+        }
+        if (features.enableMapStruct()) {
+            dependencies.add("mapstruct");
+        }
+
+        return dependencies;
     }
 
     private String generateMavenDependenciesXml(List<MavenDependency> dependencies) {
