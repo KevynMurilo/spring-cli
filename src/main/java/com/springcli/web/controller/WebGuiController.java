@@ -1,7 +1,8 @@
-package com.springcli.web;
+package com.springcli.web.controller;
 
 import com.springcli.model.*;
 import com.springcli.service.*;
+import com.springcli.web.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -117,35 +118,4 @@ public class WebGuiController {
             ));
         }
     }
-
-    public record ArchitectureInfo(String name, String displayName) {}
-
-    public record FeatureInfo(String id, String label, String description, String icon) {}
-
-    public record ProjectOptions(
-            List<String> springBootVersions,
-            List<String> javaVersions,
-            List<String> buildTools
-    ) {}
-
-    public record GenerationRequest(
-            String groupId,
-            String artifactId,
-            String projectName,
-            String description,
-            String packageName,
-            String springBootVersion,
-            String javaVersion,
-            String buildTool,
-            String architecture,
-            java.util.Set<String> dependencies,
-            ProjectFeatures features,
-            String outputPath
-    ) {}
-
-    public record GenerationResponse(
-            boolean success,
-            String message,
-            String projectPath
-    ) {}
 }
