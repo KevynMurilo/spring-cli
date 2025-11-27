@@ -1096,7 +1096,215 @@
       "files": [
         {
           "path": "src/main/java/{{basePackage}}/config/SwaggerConfig.java",
-          "content": "package {{basePackage}}.config;\n\nimport io.swagger.v3.oas.models.OpenAPI;\nimport io.swagger.v3.oas.models.info.Contact;\nimport io.swagger.v3.oas.models.info.Info;\nimport io.swagger.v3.oas.models.info.License;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\n@Configuration\npublic class SwaggerConfig {\n\n    @Bean\n    public OpenAPI customOpenAPI() {\n        return new OpenAPI()\n                .info(new Info()\n                        .title(\"API Documentation\")\n                        .version(\"1.0.0\")\n                        .description(\"REST API documentation\")\n                        .contact(new Contact()\n                                .name(\"API Support\")\n                                .email(\"support@example.com\"))\n                        .license(new License()\n                                .name(\"Apache 2.0\")\n                                .url(\"https://www.apache.org/licenses/LICENSE-2.0\")));\n    }\n}\n"
+          "content": "package {{basePackage}}.config;\n\nimport io.swagger.v3.oas.models.OpenAPI;\nimport io.swagger.v3.oas.models.info.Contact;\nimport io.swagger.v3.oas.models.info.Info;\nimport io.swagger.v3.oas.models.info.License;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\n@Configuration\npublic class SwaggerConfig {\n\n    @Bean\n    public OpenAPI customOpenAPI() {\n        return new OpenAPI()\n            .info(new Info()\n                .title(\"API Documentation\")\n                .version(\"1.0.0\")\n                .description(\"REST API documentation\")\n                .contact(new Contact()\n                    .name(\"API Support\")\n                    .email(\"support@example.com\"))\n                .license(new License()\n                    .name(\"Apache 2.0\")\n                    .url(\"https://www.apache.org/licenses/LICENSE-2.0\")));\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rabbitmq",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-amqp"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-amqp"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.rabbitmq.host",
+          "value": "rabbitmq"
+        },
+        {
+          "key": "spring.rabbitmq.port",
+          "value": "5672"
+        },
+        {
+          "key": "spring.rabbitmq.username",
+          "value": "guest"
+        },
+        {
+          "key": "spring.rabbitmq.password",
+          "value": "guest"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "rabbitmq",
+        "image": "rabbitmq:3.13-management-alpine",
+        "ports": ["5672:5672", "15672:15672"],
+        "environment": {
+          "RABBITMQ_DEFAULT_USER": "guest",
+          "RABBITMQ_DEFAULT_PASS": "guest"
+        },
+        "volumes": ["rabbitmq_data:/var/lib/rabbitmq"],
+        "healthcheck": {
+          "test": ["CMD", "rabbitmq-diagnostics", "ping"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/config/RabbitMQConfig.java",
+          "content": "package {{basePackage}}.config;\n\nimport org.springframework.amqp.core.Queue;\nimport org.springframework.amqp.rabbit.connection.ConnectionFactory;\nimport org.springframework.amqp.rabbit.core.RabbitTemplate;\nimport org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\n@Configuration\npublic class RabbitMQConfig {\n\n    public static final String EXAMPLE_QUEUE = \"example-queue\";\n\n    @Bean\n    public Queue exampleQueue() {\n        return new Queue(EXAMPLE_QUEUE, true);\n    }\n\n    @Bean\n    public Jackson2JsonMessageConverter messageConverter() {\n        return new Jackson2JsonMessageConverter();\n    }\n\n    @Bean\n    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {\n        RabbitTemplate template = new RabbitTemplate(connectionFactory);\n        template.setMessageConverter(messageConverter());\n        return template;\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "elasticsearch",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-elasticsearch"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-elasticsearch"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.elasticsearch.uris",
+          "value": "http://elasticsearch:9200"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": {
+        "serviceName": "elasticsearch",
+        "image": "elasticsearch:8.11.0",
+        "ports": ["9200:9200", "9300:9300"],
+        "environment": {
+          "discovery.type": "single-node",
+          "xpack.security.enabled": "false",
+          "ES_JAVA_OPTS": "-Xms512m -Xmx512m"
+        },
+        "volumes": ["elasticsearch_data:/usr/share/elasticsearch/data"],
+        "healthcheck": {
+          "test": ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"],
+          "interval": "10s",
+          "timeout": "5s",
+          "retries": 5
+        }
+      }
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "graphql",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-graphql"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-graphql"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.graphql.graphiql.enabled",
+          "value": "true"
+        },
+        {
+          "key": "spring.graphql.graphiql.path",
+          "value": "/graphiql"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/resources/graphql/schema.graphqls",
+          "content": "type Query {\n    hello: String\n}\n\ntype Mutation {\n    placeholder: String\n}\n"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/graphql/QueryResolver.java",
+          "content": "package {{basePackage}}.graphql;\n\nimport org.springframework.graphql.data.method.annotation.QueryMapping;\nimport org.springframework.stereotype.Controller;\n\n@Controller\npublic class QueryResolver {\n\n    @QueryMapping\n    public String hello() {\n        return \"Hello from GraphQL!\";\n    }\n}\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "cors",
+    "category": "SECURITY",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": []
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/config/CorsConfig.java",
+          "content": "package {{basePackage}}.config;\n\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.web.cors.CorsConfiguration;\nimport org.springframework.web.cors.UrlBasedCorsConfigurationSource;\nimport org.springframework.web.filter.CorsFilter;\n\nimport java.util.Arrays;\n\n@Configuration\npublic class CorsConfig {\n\n    @Bean\n    public CorsFilter corsFilter() {\n        CorsConfiguration config = new CorsConfiguration();\n        config.setAllowCredentials(true);\n        config.setAllowedOriginPatterns(Arrays.asList(\"*\"));\n        config.setAllowedHeaders(Arrays.asList(\"*\"));\n        config.setAllowedMethods(Arrays.asList(\"GET\", \"POST\", \"PUT\", \"PATCH\", \"DELETE\", \"OPTIONS\"));\n        config.setExposedHeaders(Arrays.asList(\"Authorization\", \"Content-Type\"));\n        config.setMaxAge(3600L);\n\n        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();\n        source.registerCorsConfiguration(\"/**\", config);\n\n        return new CorsFilter(source);\n    }\n}\n"
         }
       ]
     }

@@ -1,330 +1,569 @@
-# Contributing to Spring CLI
+# Contribution Guide - Spring CLI
 
-Thank you for your interest in contributing to Spring CLI! This guide will help you understand the project structure and how to add new features while maintaining code quality and consistency.
+Thank you for contributing to Spring CLI! This guide explains how to add new dependencies and features to the system.
 
-## Table of Contents
+## Index
 
-1. [Project Architecture](#project-architecture)
-2. [Adding a New Architecture Pattern](#adding-a-new-architecture-pattern)
-3. [Adding a New Preset](#adding-a-new-preset)
-4. [Creating Templates](#creating-templates)
-5. [Code Style and Best Practices](#code-style-and-best-practices)
-6. [Testing](#testing)
+1. [Architecture Overview](#architecture-overview)
+2. [How to Add a New Dependency](#how-to-add-a-new-dependency)
+3. [JSON Schema](#json-schema)
+4. [Business Rules](#business-rules)
+5. [Practical Examples](#practical-examples)
+6. [Testing Your Changes](#testing-your-changes)
+7. [Best Practices](#best-practices)
 
-## Project Architecture
+## Architecture Overview
 
-The Spring CLI follows a clean, modular architecture with clear separation of concerns:
+Spring CLI uses a **100% declarative JSON-based system** to manage dependencies. There is no hardcoded if/else logic in the services.[1]
+
+### Configuration Flow
 
 ```
-src/main/java/com/springcli/
-├── command/              # CLI commands (entry points)
-├── service/              # Business logic
-│   ├── ProjectGeneratorService  # Orchestrates project generation
-│   ├── TemplateService         # Renders Pebble templates
-│   ├── UISelector              # User input/selection
-│   ├── DependencySelector      # Dependency management UI
-│   ├── ProjectValidator        # Project validation
-│   └── ProjectConfigurationBuilder  # Builds ProjectConfig
-├── model/                # Domain models
-│   ├── Architecture      # Architecture patterns enum
-│   ├── Preset           # Preset configurations
-│   └── ProjectConfig    # Project configuration
-├── infra/               # Infrastructure concerns
-│   ├── console/         # Console output utilities
-│   └── filesystem/      # File system operations
-└── client/              # External API clients
-
-src/main/resources/templates/
-├── java/                # Java code templates
-│   ├── dto/            # Data Transfer Objects
-│   ├── entity/         # Domain/JPA Entities
-│   ├── controller/     # REST Controllers
-│   ├── service/        # Service layer
-│   ├── repository/     # Repository layer
-│   ├── usecase/        # Use Cases (Clean Architecture)
-│   ├── port/           # Ports (Hexagonal Architecture)
-│   ├── adapter/        # Adapters (Hexagonal Architecture)
-│   ├── config/         # Spring configurations
-│   ├── security/       # Security configurations
-│   ├── exception/      # Custom exceptions
-│   ├── ddd/            # DDD-specific templates
-│   ├── cqrs/           # CQRS-specific templates
-│   └── event-driven/   # Event-Driven templates
-├── config/             # Application config templates
-└── ops/                # DevOps files (Docker, K8s, etc.)
+dependency-rules.json (single source of truth)
+        ↓
+DependencyRulesService (loads and caches rules)
+        ↓
+┌────────────────────────────────────────┐
+│ Services that READ from JSON:         │
+│ • DependencyConfigurationRegistry      │ → application.yml
+│ • PomManipulationService               │ → pom.xml
+│ • GradleManipulationService            │ → build.gradle
+│ • DockerComposeGeneratorService        │ → docker-compose.yml
+│ • ScaffoldingGeneratorService          │ → Java code
+└────────────────────────────────────────┘
 ```
 
-## Adding a New Architecture Pattern
+Important: Services MUST NEVER contain dependency-specific logic. Everything comes from JSON.
 
-### Step 1: Create Template Files
+## How to Add a New Dependency
 
-Create templates in the appropriate subdirectories under `src/main/resources/templates/java/`:
+### Step 1: Edit `dependency-rules.json`
 
-**Example: Adding "Repository Pattern"**
-
-1. Create your templates:
-   ```
-   java/repository/RepositoryInterface.peb
-   java/repository/RepositoryImpl.peb
-   ```
-
-2. Use conditional imports to avoid unnecessary imports when classes are in the same package:
-   ```java
-   package {{ currentPackage }};
-
-   {% if currentPackage != pkg['model'] %}
-   import {{ pkg.model }}.{{ entityName }};
-   {% endif %}
-   ```
-
-### Step 2: Update Architecture.java
-
-Add your new architecture to the `Architecture` enum:
-
-```java
-MY_ARCHITECTURE(define("My Architecture Description")
-        // Define layer mappings (logical name -> physical path)
-        .layer("model", "domain/model")
-        .layer("repository", "infrastructure/persistence")
-        .layer("controller", "infrastructure/web")
-        .layer("config", "infrastructure/config")
-        .layer("security", "infrastructure/security")
-        .layer("dto", "application/dto")
-
-        // Add files (layer, template path, filename suffix)
-        .addFile("model", "entity/DomainModel", ".java")
-        .addFile("repository", "repository/RepositoryInterface", "Repository.java")
-        .addFile("controller", "controller/Controller", "Controller.java")
-
-        // Add feature-toggled files (layer, template, filename, toggle function)
-        .addFeatureFile("config", "config/SwaggerConfig", "SwaggerConfig.java",
-            ProjectFeatures::enableSwagger)
-        .addFeatureFile("security", "security/SecurityConfig", "SecurityConfig.java",
-            ProjectFeatures::enableJwt)
-        .addFeatureFile("dto", "dto/ErrorResponse", "ErrorResponse.java",
-            ProjectFeatures::enableExceptionHandler)
-        .addFeatureFile("config", "exception/ResourceNotFoundException",
-            "ResourceNotFoundException.java", ProjectFeatures::enableExceptionHandler)
-    ),
-```
-
-### Template Path Organization
-
-Templates are organized by **type**, not by architecture:
-- ✅ `entity/DomainModel.peb` - Used by multiple architectures
-- ✅ `controller/Controller.peb` - Generic controller
-- ✅ `controller/InfrastructureController.peb` - Clean Architecture specific
-- ❌ `clean/DomainModel.peb` - Don't organize by architecture name
-
-### Layer Mapping Rules
-
-- **Logical names** (left side) are used internally and in `pkg` variable
-- **Physical paths** (right side) become actual package structure
-- Use `{feature}` placeholder for feature-driven architectures
-
-```java
-.layer("port-out", "application/port/out")  // Logical: port-out, Physical: application.port.out
-.layer("model", "features/{feature}/model") // Supports dynamic feature names
-```
-
-## Adding a New Preset
-
-Presets are defined in `src/main/resources/presets.json`:
+Add your rule to `src/main/resources/dependency-rules.json`:
 
 ```json
 {
-  "name": "My Preset",
-  "description": "Description of what this preset provides",
-  "architecture": "CLEAN",
-  "javaVersion": "21",
-  "dependencies": [
-    "web",
-    "data-jpa",
-    "postgresql"
-  ],
-  "features": {
-    "enableJwt": true,
-    "enableSwagger": true,
-    "enableCors": true,
-    "enableExceptionHandler": true,
-    "enableDocker": true,
-    "enableKubernetes": false,
-    "enableCiCd": true
+  "id": "your-dependency",
+  "category": "TOOL",
+  "priority": 0,
+  "build": {
+    "maven": {
+      "dependencies": [ ... ],
+      "plugins": [ ... ],
+      "exclusions": [ ... ]
+    },
+    "gradle": {
+      "implementation": [ ... ],
+      "compileOnly": [ ... ],
+      "runtimeOnly": [ ... ],
+      "annotationProcessor": [ ... ],
+      "compilerOptions": [ ... ]
+    }
+  },
+  "runtime": {
+    "properties": [ ... ]
+  },
+  "infrastructure": {
+    "dockerCompose": { ... }
+  },
+  "scaffolding": {
+    "files": [ ... ]
   }
 }
 ```
 
-### Preset Best Practices
+### Step 2: If It Is a Feature, Map the ID
 
-1. **Name**: Clear, descriptive (e.g., "REST API with PostgreSQL")
-2. **Architecture**: Choose the most appropriate for the use case
-3. **Dependencies**: Include only essential dependencies
-4. **Features**: Enable features that make sense together
-5. **Documentation**: Update preset description to explain use case
+If your dependency is activated by a feature (such as JWT or Swagger), add the mapping in:
 
-## Creating Templates
-
-### Template Structure
-
-All templates use Pebble templating engine with these available variables:
-
-| Variable | Type | Description |
-|----------|------|-------------|
-| `currentPackage` | String | The package where this file will be generated |
-| `packageName` | String | Root package name |
-| `basePackage` | String | Base package (usually same as packageName) |
-| `entityName` | String | Entity name (e.g., "Demo") |
-| `projectName` | String | Project artifact ID |
-| `architecture` | String | Architecture name (e.g., "CLEAN") |
-| `javaVersion` | String | Java version (e.g., "21") |
-| `buildTool` | String | Build tool ID (e.g., "maven-project") |
-| `features` | ProjectFeatures | Feature flags object |
-| `pkg` | Map<String, String> | Package mappings for all layers |
-
-### Conditional Imports Example
-
-Always use conditional imports to avoid importing classes from the same package:
+`PomManipulationService.java` and `GradleManipulationService.java`:
 
 ```java
-package {{ currentPackage }};
+private List<String> getActiveFeaturesAsDependencyIds(ProjectFeatures features) {
+    List<String> dependencies = new ArrayList<>();
 
-{% if currentPackage != pkg['model'] %}
-import {{ pkg.model }}.{{ entityName }};
-{% endif %}
-{% if currentPackage != pkg['repository'] %}
-import {{ pkg.repository }}.{{ entityName }}Repository;
-{% endif %}
-{% if currentPackage != pkg['config'] %}
-import {{ pkg.config }}.ResourceNotFoundException;
-{% endif %}
-```
+    if (features.enableJwt()) {
+        dependencies.add("jwt");
+    }
+    if (features.enableSwagger()) {
+        dependencies.add("swagger");
+    }
+    // ADD HERE:
+    if (features.enableYourNewDependency()) {
+        dependencies.add("your-dependency");
+    }
 
-### Feature Flags Example
-
-```java
-{% if features.enableSwagger %}
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-{% endif %}
-
-@RestController
-{% if features.enableSwagger %}
-@Tag(name = "{{ entityName }}", description = "{{ entityName }} management APIs")
-{% endif %}
-public class {{ entityName }}Controller {
-    // ...
+    return dependencies;
 }
 ```
 
-## Code Style and Best Practices
+### Step 3: Compile and Test
 
-### Java Code
-
-1. **Naming**: Use clear, descriptive names in English
-2. **Comments**: Only add comments where logic isn't self-evident
-3. **Exceptions**: Use specific exceptions (e.g., `ResourceNotFoundException`) instead of generic `RuntimeException`
-4. **Services**:
-   - Keep focused on single responsibility
-   - Use constructor injection with `@RequiredArgsConstructor`
-5. **Controllers**: Should delegate to services, not contain business logic
-6. **Validation**: Use `ProjectValidator` for validation logic
-
-### Template Guidelines
-
-1. **Organization**: Group templates by **type** (dto, entity, service), not architecture
-2. **Reusability**: Create generic templates that work across architectures when possible
-3. **Conditional Logic**: Use feature flags and conditional imports
-4. **Formatting**: Follow standard Java formatting conventions
-5. **Comments**: Templates should generate clean, production-ready code
-
-### Package Structure in Generated Projects
-
-Different architectures organize packages differently:
-
-**Clean Architecture:**
-```
-com.example.demo
-├── domain
-│   ├── model/              # Domain entities
-│   └── repository/         # Repository interfaces (ports)
-├── application
-│   ├── dto/                # DTOs
-│   └── usecase/            # Use cases
-└── infrastructure
-    ├── controller/         # Controllers
-    ├── persistence/        # JPA entities & repository implementations
-    ├── config/             # Spring configurations
-    └── security/           # Security configs
+```bash
+mvn clean compile
+mvn test
 ```
 
-**Hexagonal Architecture:**
+## JSON Schema
+
+### Full Structure
+
+```json
+{
+  "id": "string (REQUIRED - unique identifier)",
+  "category": "string (REQUIRED - DATA, SECURITY, TOOL, IO, OBSERVABILITY)",
+  "priority": "integer (REQUIRED - 0 to 10, where 10 = highest priority)",
+
+  "build": {
+    "maven": {
+      "dependencies": [
+        {
+          "groupId": "string (REQUIRED)",
+          "artifactId": "string (REQUIRED)",
+          "version": "string (OPTIONAL - omit if managed by BOM)",
+          "scope": "string (OPTIONAL - compile, runtime, provided, test)"
+        }
+      ],
+      "plugins": [
+        {
+          "groupId": "string (REQUIRED)",
+          "artifactId": "string (REQUIRED)",
+          "executionGoal": "string (OPTIONAL - compile, test, etc.)"
+        }
+      ],
+      "exclusions": [
+        {
+          "groupId": "string (REQUIRED)",
+          "artifactId": "string (REQUIRED)"
+        }
+      ]
+    },
+    "gradle": {
+      "implementation": ["string - format: groupId:artifactId:version"],
+      "compileOnly": ["string"],
+      "runtimeOnly": ["string"],
+      "annotationProcessor": ["string"],
+      "compilerOptions": ["string - compiler flags such as -Amapstruct..."],
+      "plugins": ["string - Gradle plugin ID"]
+    }
+  },
+
+  "runtime": {
+    "properties": [
+      {
+        "key": "string (REQUIRED - Spring property key)",
+        "value": "string (REQUIRED - default value)",
+        "comment": "string (OPTIONAL - explanatory comment)"
+      }
+    ]
+  },
+
+  "infrastructure": {
+    "dockerCompose": {
+      "serviceName": "string (REQUIRED - service name in docker-compose)",
+      "image": "string (REQUIRED - Docker image with tag)",
+      "ports": ["string - format: host:container"],
+      "environment": {
+        "KEY": "value"
+      },
+      "volumes": ["string - format: volume:mountpoint"],
+      "depends_on": ["string - other service name"],
+      "healthcheck": {
+        "test": ["CMD", "command", "args"],
+        "interval": "string (e.g. 10s)",
+        "timeout": "string (e.g. 5s)",
+        "retries": "integer"
+      }
+    }
+  },
+
+  "scaffolding": {
+    "files": [
+      {
+        "path": "string (REQUIRED - file path with {{basePackage}})",
+        "content": "string (REQUIRED - file content with {{basePackage}} support)"
+      }
+    ]
+  }
+}
 ```
-com.example.demo
-├── domain
-│   └── model/              # Domain models
-├── application
-│   ├── dto/                # DTOs
-│   ├── port
-│   │   ├── in/             # Input ports
-│   │   └── out/            # Output ports
-│   └── service/            # Application services
-└── adapter
-    ├── in
-    │   └── web/            # Web controllers
-    ├── out
-    │   └── persistence/    # Database adapters
-    ├── config/             # Configuration
-    └── security/           # Security
+
+### Null Fields vs Empty Arrays
+
+- Use `null` when the entire section is not applicable (for example, Docker Compose for Lombok).
+- Use `[]` (empty array) when the section exists but has no items (for example, Maven plugins for PostgreSQL).
+
+## Business Rules
+
+### 1. Priorities
+
+Dependencies with annotation processors must have specific priorities:
+
+| Dependency | Priority | Reason |
+|-----------|----------|--------|
+| Lombok    | 10       | Must run first |
+| MapStruct | 5        | Depends on Lombok |
+| Others    | 0        | Default |
+
+### 2. Databases
+
+Connection URLs in Docker:
+
+For databases, always use the Docker service name as hostname:
+
+```json
+{
+  "key": "spring.datasource.url",
+  "value": "jdbc:postgresql://postgres:5432/mydb"
+}
 ```
 
-## Testing
+Do NOT use `localhost` – it will break when running in Docker.[2]
 
-### Before Submitting
+### 3. Infrastructure
 
-1. **Build**: Ensure `mvn clean compile` succeeds
-2. **Generate**: Test project generation with your changes:
-   ```bash
-   mvn clean package
-   java -jar target/spring-cli-1.1.0.jar new my-test --architecture=YOUR_ARCH
-   ```
-3. **Generated Project**: Verify the generated project compiles:
-   ```bash
-   cd my-test
-   ./mvnw clean compile
-   ```
+Kafka: Always create TWO services in JSON:
 
-### Manual Testing Checklist
+- `kafka-zookeeper` (separate id)
+- `kafka` (with `depends_on: ["zookeeper"]`)
 
-- [ ] All architectures generate successfully
-- [ ] Generated projects compile without errors
-- [ ] Feature flags work correctly (JWT, Swagger, etc.)
-- [ ] Conditional imports don't create import errors
-- [ ] Package structure matches architecture pattern
-- [ ] No Portuguese text in generated code
-- [ ] README and documentation are updated
+Healthchecks: Always add healthchecks for infrastructure containers.
 
-## Pull Request Guidelines
+### 4. Scaffolding
 
-1. **Branch naming**: `feature/description` or `fix/description`
-2. **Commits**: Clear, descriptive commit messages in English
-3. **Description**: Explain what and why, not just what changed
-4. **Testing**: Include test results for generated projects
-5. **Documentation**: Update this CONTRIBUTING.md if adding new concepts
+Template variables:
 
-## Architecture Decision Records
+- `{{basePackage}}`: Replaced by the base package (for example, `com.example.app`)
 
-When adding significant features, consider these design principles:
+SecurityConfig: For Spring Security, always generate `SecurityConfig.java` with `permitAll()` to avoid locking out the developer.[3]
 
-1. **Separation of Concerns**: Each class has one responsibility
-2. **DRY**: Don't duplicate template code; use includes or shared templates
-3. **Flexibility**: Make it easy to add new architectures and presets
-4. **User Experience**: CLI should be intuitive and helpful
-5. **Code Quality**: Generated code should follow best practices
+Flyway: Create folder `src/main/resources/db/migration` with a `.gitkeep` or an initial migration.
 
-## Getting Help
+### 5. Maven Scopes
 
-- **Issues**: Check existing issues or create a new one
-- **Discussions**: Use GitHub Discussions for questions
-- **Examples**: Look at existing architectures as examples
+| Scope      | When to Use |
+|-----------|-------------|
+| `compile` (default) | Available at compile and runtime |
+| `provided`          | Provided by the container (for example, Lombok) |
+| `runtime`           | Only needed at runtime (for example, JDBC drivers) |
+| `test`              | Test-only |
 
-Thank you for contributing to Spring CLI! 🚀
+### 6. Gradle Configurations
+
+| Configuration      | Maven Equivalent | When to Use |
+|--------------------|------------------|------------|
+| `implementation`   | `compile`        | Regular dependency |
+| `compileOnly`      | `provided`       | Available at compile but not runtime |
+| `runtimeOnly`      | `runtime`        | Available only at runtime |
+| `annotationProcessor` | N/A           | Annotation processors (Lombok, MapStruct) |
+
+## Practical Examples
+
+### Example 1: Simple Dependency (Library)
+
+```json
+{
+  "id": "commons-lang3",
+  "category": "TOOL",
+  "priority": 0,
+  "build": {
+    "maven": {
+      "dependencies": [
+        {
+          "groupId": "org.apache.commons",
+          "artifactId": "commons-lang3",
+          "version": "3.14.0"
+        }
+      ],
+      "plugins": [],
+      "exclusions": []
+    },
+    "gradle": {
+      "implementation": ["org.apache.commons:commons-lang3:3.14.0"],
+      "compileOnly": [],
+      "runtimeOnly": [],
+      "annotationProcessor": [],
+      "compilerOptions": []
+    }
+  },
+  "runtime": {
+    "properties": []
+  },
+  "infrastructure": {
+    "dockerCompose": null
+  },
+  "scaffolding": {
+    "files": []
+  }
+}
+```
+
+### Example 2: Database with Docker
+
+```json
+{
+  "id": "mariadb",
+  "category": "DATA",
+  "priority": 0,
+  "build": {
+    "maven": {
+      "dependencies": [
+        {
+          "groupId": "org.springframework.boot",
+          "artifactId": "spring-boot-starter-data-jpa"
+        },
+        {
+          "groupId": "org.mariadb.jdbc",
+          "artifactId": "mariadb-java-client",
+          "scope": "runtime"
+        }
+      ],
+      "plugins": [],
+      "exclusions": []
+    },
+    "gradle": {
+      "implementation": ["org.springframework.boot:spring-boot-starter-data-jpa"],
+      "compileOnly": [],
+      "runtimeOnly": ["org.mariadb.jdbc:mariadb-java-client"],
+      "annotationProcessor": [],
+      "compilerOptions": []
+    }
+  },
+  "runtime": {
+    "properties": [
+      {
+        "key": "spring.datasource.url",
+        "value": "jdbc:mariadb://mariadb:3306/mydb"
+      },
+      {
+        "key": "spring.datasource.username",
+        "value": "root"
+      },
+      {
+        "key": "spring.datasource.password",
+        "value": "root"
+      },
+      {
+        "key": "spring.datasource.driver-class-name",
+        "value": "org.mariadb.jdbc.Driver"
+      },
+      {
+        "key": "spring.jpa.database-platform",
+        "value": "org.hibernate.dialect.MariaDBDialect"
+      }
+    ]
+  },
+  "infrastructure": {
+    "dockerCompose": {
+      "serviceName": "mariadb",
+      "image": "mariadb:11.2",
+      "ports": ["3306:3306"],
+      "environment": {
+        "MARIADB_DATABASE": "mydb",
+        "MARIADB_ROOT_PASSWORD": "root"
+      },
+      "volumes": ["mariadb_data:/var/lib/mysql"],
+      "healthcheck": {
+        "test": ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    }
+  },
+  "scaffolding": {
+    "files": [
+      {
+        "path": "src/main/java/{{basePackage}}/entity/package-info.java",
+        "content": "package {{basePackage}}.entity;"
+      }
+    ]
+  }
+}
+```
+
+### Example 3: Feature with Scaffolding
+
+```json
+{
+  "id": "graphql",
+  "category": "IO",
+  "priority": 0,
+  "build": {
+    "maven": {
+      "dependencies": [
+        {
+          "groupId": "org.springframework.boot",
+          "artifactId": "spring-boot-starter-graphql"
+        }
+      ],
+      "plugins": [],
+      "exclusions": []
+    },
+    "gradle": {
+      "implementation": ["org.springframework.boot:spring-boot-starter-graphql"],
+      "compileOnly": [],
+      "runtimeOnly": [],
+      "annotationProcessor": [],
+      "compilerOptions": []
+    }
+  },
+  "runtime": {
+    "properties": [
+      {
+        "key": "spring.graphql.graphiql.enabled",
+        "value": "true"
+      },
+      {
+        "key": "spring.graphql.graphiql.path",
+        "value": "/graphiql"
+      }
+    ]
+  },
+  "infrastructure": {
+    "dockerCompose": null
+  },
+  "scaffolding": {
+    "files": [
+      {
+        "path": "src/main/resources/graphql/schema.graphqls",
+        "content": "type Query {\n    hello: String\n}\n"
+      },
+      {
+        "path": "src/main/java/{{basePackage}}/graphql/QueryResolver.java",
+        "content": "package {{basePackage}}.graphql;\n\nimport org.springframework.graphql.data.method.annotation.QueryMapping;\nimport org.springframework.stereotype.Controller;\n\n@Controller\npublic class QueryResolver {\n\n    @QueryMapping\n    public String hello() {\n        return \"Hello from GraphQL!\";\n    }\n}\n"
+      }
+    ]
+  }
+}
+```
+
+## Testing Your Changes
+
+### 1. JSON Validation
+
+Before committing, validate the JSON:
+
+```bash
+cat src/main/resources/dependency-rules.json | jq . > /dev/null
+```
+
+If there is a syntax error, `jq` will point to the exact line.
+
+### 2. Compilation
+
+```bash
+mvn clean compile
+```
+
+### 3. Unit Tests
+
+```bash
+mvn test
+```
+
+### 4. Integration Test
+
+Generate a real project using your new dependency:
+
+```bash
+mvn clean package -DskipTests
+./target/spring-cli
+```
+
+In the interactive CLI, select your new dependency and generate a project.[4][1]
+
+### 5. Checks
+
+After generating the project:
+
+1. Build: Does pom.xml/build.gradle contain the correct dependencies?
+2. Runtime: Does application.yml contain the correct properties?
+3. Infrastructure: Was docker-compose.yml generated (if applicable)?
+4. Scaffolding: Were Java files created correctly?
+5. Compile: Does the generated project compile without errors?
+
+```bash
+cd generated-project
+mvn clean compile  # or ./gradlew build
+```
+
+## Best Practices
+
+### ✅ DO
+
+1. Always use explicit versions for libraries not in the Spring Boot BOM.[5]
+2. Add healthchecks for all Docker containers.
+3. Use Docker service names in connection URLs.
+4. Document properties using the `comment` field.
+5. Test with both Maven AND Gradle to ensure both work.[5]
+6. Use `{{basePackage}}` templates in scaffolding.
+7. Order properties logically (URL first, credentials next, advanced settings last).
+8. Create `package-info.java` for new packages in scaffolding.
+
+### ❌ DO NOT
+
+1. Do not add dependency-specific logic to Java services – everything must come from JSON.
+2. Do not use `localhost` in database properties.
+3. Do not omit the `category` field – it may be used for future grouping.
+4. Do not create circular dependencies in Docker Compose.
+5. Do not use SNAPSHOT versions – only stable releases.
+6. Do not add unnecessary dependencies – keep it minimal.
+7. Do not break compatibility with older Spring Boot versions without documenting it.[3]
+
+### Performance Tips
+
+1. Priorities: Use only when truly necessary (annotation processors).
+2. Exclusions: Use them to avoid version conflicts.[3]
+3. Scopes: Use `provided` or `runtime` whenever possible to reduce the compile classpath.
+
+### Documentation
+
+When adding a significant dependency:
+
+1. Update `README.md` with the new dependency in the list.
+2. If it is a complex feature, add an example in `ARCHITECTURE.md`.
+3. If the JSON schema changes, update this `CONTRIBUTING.md`.
+
+## Commit Structure
+
+When committing new dependencies:
+
+```text
+feat(deps): add MariaDB support
+
+- Add MariaDB dependency rule to dependency-rules.json
+- Include Docker Compose configuration with healthcheck
+- Add connection properties pointing to Docker service
+- Generate entity package scaffold
+
+Closes #123
+```
+
+## FAQ
+
+### Q: Do I need to add Java code when I add a dependency?
+
+A: Only if the dependency requires scaffolding (initial code). Otherwise, JSON alone is enough.
+
+### Q: How do I add support for a complex Maven plugin?
+
+A: Use the `executionGoal` field in `maven.plugins`. For complex XML configuration, consider creating a template.
+
+### Q: Can I have multiple versions of the same dependency?
+
+A: Not directly. The `id` must be unique. If you need variants, use different IDs (for example, `postgresql-14`, `postgresql-15`).
+
+### Q: How do I test only my dependency without generating a full project?
+
+A: Create a unit test in `DependencyRulesServiceTest.java` that validates your rule.
+
+### Q: What if my dependency conflicts with another?
+
+A: Use the `exclusions` field in Maven or exclude mechanisms in Gradle to resolve conflicts.[3]
+
+## Support
+
+Questions? Open an issue:  
+https://github.com/spring-cli/issues
+

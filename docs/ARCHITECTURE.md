@@ -1,16 +1,16 @@
-# Spring CLI - Arquitetura Refatorada
+# Spring CLI – Refactored Architecture
 
-## Visão Geral
+## Overview
 
-O Spring CLI foi completamente refatorado para utilizar um sistema baseado em JSON para configuração de dependências, eliminando toda a lógica hardcoded (if/else) que estava espalhada pelo código.
+Spring CLI has been fully refactored to use a JSON‑based system for dependency configuration, removing all hardcoded if/else logic that was previously scattered through the code.[1]
 
-## Arquitetura Baseada em Regras
+## Rule‑Based Architecture
 
 ### dependency-rules.json
 
-Localizado em `src/main/resources/dependency-rules.json`, este arquivo é o coração do sistema. Ele define todas as regras de configuração para cada dependência suportada.
+Located at `src/main/resources/dependency-rules.json`, this file is the core of the system and defines all configuration rules for each supported dependency.[1]
 
-#### Estrutura de uma Regra
+#### Rule Structure
 
 ```json
 {
@@ -33,22 +33,23 @@ Localizado em `src/main/resources/dependency-rules.json`, este arquivo é o cora
 }
 ```
 
-### Componentes Principais
+### Main Components
 
-#### 1. Modelos de Dados (`com.springcli.model.rules`)
+#### 1. Data Models (`com.springcli.model.rules`)
 
-- **DependencyRule**: Modelo raiz que representa uma regra completa
-- **BuildConfig**: Configurações de build (Maven/Gradle)
-- **RuntimeConfig**: Propriedades do application.yml
-- **InfrastructureConfig**: Configuração de infraestrutura (Docker Compose)
-- **ScaffoldingConfig**: Arquivos de código a serem gerados
+- DependencyRule: Root model representing a complete rule.
+- BuildConfig: Build configuration (Maven/Gradle).
+- RuntimeConfig: Properties for application.yml.
+- InfrastructureConfig: Infrastructure configuration (Docker Compose).[2]
+- ScaffoldingConfig: Code files to be generated.[3]
 
 #### 2. DependencyRulesService
 
-Responsável por:
-- Carregar o `dependency-rules.json` na inicialização
-- Fornecer acesso às regras por ID
-- Ordenar regras por prioridade
+Responsibilities:
+
+- Load `dependency-rules.json` at startup.
+- Provide access to rules by ID.
+- Sort rules by priority.
 
 ```java
 @Service
@@ -60,9 +61,10 @@ public class DependencyRulesService {
 
 #### 3. DependencyConfigurationRegistry
 
-Refatorado para usar o `DependencyRulesService` ao invés de lógica hardcoded:
+Refactored to use DependencyRulesService instead of hardcoded logic.[4]
 
-**Antes:**
+Before:
+
 ```java
 configurations.put("postgresql", DependencyConfiguration.builder("postgresql")
     .requiredProperties(Map.of(
@@ -73,7 +75,8 @@ configurations.put("postgresql", DependencyConfiguration.builder("postgresql")
     .build());
 ```
 
-**Depois:**
+After:
+
 ```java
 public Optional<DependencyConfiguration> getConfiguration(String dependencyId) {
     return rulesService.getRule(dependencyId)
@@ -89,7 +92,7 @@ public Optional<DependencyConfiguration> getConfiguration(String dependencyId) {
 
 #### 4. PomManipulationService
 
-Refatorado para injetar dependências Maven diretamente do JSON:
+Refactored to inject Maven dependencies directly from JSON rules.[1]
 
 ```java
 private String injectFeatureDependencies(String pomContent, ProjectFeatures features, LibraryVersions versions) {
@@ -107,7 +110,7 @@ private String injectFeatureDependencies(String pomContent, ProjectFeatures feat
 
 #### 5. GradleManipulationService
 
-Mesmo padrão aplicado ao Gradle:
+The same pattern is applied to Gradle:
 
 ```java
 private String generateGradleDependencies(GradleConfig gradle) {
@@ -127,7 +130,7 @@ private String generateGradleDependencies(GradleConfig gradle) {
 
 #### 6. DockerComposeGeneratorService
 
-Novo serviço que gera `docker-compose.yml` completamente a partir do JSON:
+New service that generates `docker-compose.yml` entirely from JSON definitions.[2]
 
 ```java
 public String generateDockerCompose(Set<String> dependencies) {
@@ -137,13 +140,13 @@ public String generateDockerCompose(Set<String> dependencies) {
         .map(rule -> rule.infrastructure().dockerCompose())
         .collect(Collectors.toList());
 
-    // Gera YAML completo
+    // Generate full YAML
 }
 ```
 
 #### 7. ScaffoldingGeneratorService
 
-Novo serviço que gera arquivos de código a partir das regras:
+New service that generates code files based on rules.[3]
 
 ```java
 public Map<String, String> generateScaffoldingFiles(Set<String> dependencies, String basePackage, Path projectPath) {
@@ -163,52 +166,50 @@ public Map<String, String> generateScaffoldingFiles(Set<String> dependencies, St
 }
 ```
 
-## Prioridades de Dependências
+## Dependency Priorities
 
-O sistema suporta prioridades para garantir ordem de processamento:
+The system supports priorities to guarantee processing order, which is essential for annotation processors.[5]
 
-- **Lombok**: priority 10 (processado primeiro)
-- **MapStruct**: priority 5 (processado após Lombok)
-- **Outros**: priority 0
+- Lombok: priority 10 (processed first)
+- MapStruct: priority 5 (processed after Lombok)
+- Others: priority 0
 
-Isso é crucial para annotation processors que têm dependências entre si.
-
-## Fluxo de Geração de Projeto
+## Project Generation Flow
 
 ```
-1. Usuário seleciona dependências
+1. User selects dependencies
         ↓
-2. DependencyRulesService carrega regras do JSON
+2. DependencyRulesService loads rules from JSON
         ↓
-3. Regras são ordenadas por prioridade
+3. Rules are sorted by priority
         ↓
-4. PomManipulationService/GradleManipulationService injetam dependências
+4. PomManipulationService/GradleManipulationService inject dependencies
         ↓
-5. DependencyConfigurationRegistry injeta propriedades no application.yml
+5. DependencyConfigurationRegistry injects properties into application.yml
         ↓
-6. DockerComposeGeneratorService gera docker-compose.yml
+6. DockerComposeGeneratorService generates docker-compose.yml
         ↓
-7. ScaffoldingGeneratorService gera arquivos de código
+7. ScaffoldingGeneratorService generates code files
         ↓
-8. Projeto completo é gerado
+8. Complete project is generated
 ```
 
-## Vantagens da Nova Arquitetura
+## Advantages of the New Architecture
 
-1. **Zero Lógica Hardcoded**: Toda configuração está no JSON
-2. **Facilidade de Manutenção**: Adicionar novas dependências é apenas editar o JSON
-3. **Separação de Responsabilidades**: Cada serviço tem uma única função
-4. **Testabilidade**: Fácil mockar o DependencyRulesService
-5. **Extensibilidade**: Suporte fácil para novos tipos de configuração
-6. **Versionamento**: Configurações podem ser versionadas junto com o código
+- Zero Hardcoded Logic: All configuration lives in JSON rules.[1]
+- Easier Maintenance: Adding new dependencies only requires editing JSON, not Java code.
+- Clear Separation of Concerns: Each service has a single responsibility, aligning with clean architecture practices.[6]
+- Testability: DependencyRulesService is easy to mock in tests.[5]
+- Extensibility: New configuration types can be added without touching existing logic.
+- Versioning: JSON configuration is versioned alongside the codebase in the repository.[1]
 
-## Adicionando uma Nova Dependência
+## Adding a New Dependency
 
-Para adicionar suporte a uma nova dependência, basta adicionar uma entrada no `dependency-rules.json`:
+To add support for a new dependency, just add an entry in `dependency-rules.json`:
 
 ```json
 {
-  "id": "nova-dependencia",
+  "id": "new-dependency",
   "category": "TOOL",
   "priority": 0,
   "build": {
@@ -216,19 +217,19 @@ Para adicionar suporte a uma nova dependência, basta adicionar uma entrada no `
       "dependencies": [
         {
           "groupId": "com.example",
-          "artifactId": "nova-lib",
+          "artifactId": "new-lib",
           "version": "1.0.0"
         }
       ]
     },
     "gradle": {
-      "implementation": ["com.example:nova-lib:1.0.0"]
+      "implementation": ["com.example:new-lib:1.0.0"]
     }
   },
   "runtime": {
     "properties": [
       {
-        "key": "app.nova.enabled",
+        "key": "app.new.enabled",
         "value": "true"
       }
     ]
@@ -242,7 +243,7 @@ Para adicionar suporte a uma nova dependência, basta adicionar uma entrada no `
 }
 ```
 
-## Dependências Suportadas
+## Supported Dependencies
 
 - lombok
 - mapstruct
@@ -255,18 +256,18 @@ Para adicionar suporte a uma nova dependência, basta adicionar uma entrada no `
 - security
 - web
 - actuator
-- kafka (com zookeeper)
+- kafka (with zookeeper)
 - zipkin
-- graalvm
+- graalvm[1]
 
-## Estrutura de Pacotes
+## Package Structure
 
-```
+```text
 com.springcli
 ├── model
-│   └── rules              (Modelos de dados do JSON)
+│   └── rules              (JSON data models)
 ├── service
-│   ├── config             (Serviços de configuração)
+│   ├── config             (configuration services)
 │   ├── DependencyRulesService
 │   ├── DockerComposeGeneratorService
 │   ├── ScaffoldingGeneratorService
@@ -276,6 +277,7 @@ com.springcli
     └── dependency-rules.json
 ```
 
-## Conclusão
+## Summary
 
-A refatoração eliminou aproximadamente 500+ linhas de código hardcoded, substituindo por uma solução declarativa baseada em JSON que é mais fácil de manter, testar e estender.
+The refactor removed roughly 500+ lines of hardcoded configuration and replaced them with a declarative JSON‑based solution that is easier to maintain, test, and extend.[7]
+
