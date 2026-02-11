@@ -1277,6 +1277,357 @@
     }
   },
   {
+    "id": "webflux",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-webflux"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-webflux"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "server.port",
+          "value": "8080"
+        },
+        {
+          "key": "spring.application.name",
+          "value": "my-app"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "data-r2dbc",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-r2dbc"
+          },
+          {
+            "groupId": "io.r2dbc",
+            "artifactId": "r2dbc-h2",
+            "scope": "runtime"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-r2dbc"],
+        "compileOnly": [],
+        "runtimeOnly": ["io.r2dbc:r2dbc-h2"],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.r2dbc.url",
+          "value": "r2dbc:h2:mem:///testdb"
+        },
+        {
+          "key": "spring.r2dbc.username",
+          "value": "sa"
+        },
+        {
+          "key": "spring.r2dbc.password",
+          "value": ""
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "data-jpa",
+    "category": "DATA",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-data-jpa"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-data-jpa"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.jpa.hibernate.ddl-auto",
+          "value": "update"
+        },
+        {
+          "key": "spring.jpa.show-sql",
+          "value": "false"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/java/{{basePackage}}/entity/package-info.java",
+          "content": "package {{basePackage}}.entity;"
+        },
+        {
+          "path": "src/main/java/{{basePackage}}/repository/package-info.java",
+          "content": "package {{basePackage}}.repository;"
+        }
+      ]
+    }
+  },
+  {
+    "id": "validation",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-validation"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-validation"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": []
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "devtools",
+    "category": "TOOL",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-devtools",
+            "scope": "runtime"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": [],
+        "compileOnly": [],
+        "runtimeOnly": ["org.springframework.boot:spring-boot-devtools"],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.devtools.restart.enabled",
+          "value": "true"
+        },
+        {
+          "key": "spring.devtools.livereload.enabled",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "thymeleaf",
+    "category": "IO",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.boot",
+            "artifactId": "spring-boot-starter-thymeleaf"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.boot:spring-boot-starter-thymeleaf"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.thymeleaf.cache",
+          "value": "false"
+        },
+        {
+          "key": "spring.thymeleaf.prefix",
+          "value": "classpath:/templates/"
+        },
+        {
+          "key": "spring.thymeleaf.suffix",
+          "value": ".html"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": [
+        {
+          "path": "src/main/resources/templates/index.html",
+          "content": "<!DOCTYPE html>\n<html xmlns:th=\"http://www.thymeleaf.org\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Home</title>\n</head>\n<body>\n    <h1 th:text=\"'Hello, World!'\">Hello</h1>\n</body>\n</html>\n"
+        }
+      ]
+    }
+  },
+  {
+    "id": "cloud-eureka",
+    "category": "CLOUD",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.cloud",
+            "artifactId": "spring-cloud-starter-netflix-eureka-client"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.cloud:spring-cloud-starter-netflix-eureka-client"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "eureka.client.service-url.defaultZone",
+          "value": "http://localhost:8761/eureka/"
+        },
+        {
+          "key": "eureka.instance.prefer-ip-address",
+          "value": "true"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
+    "id": "cloud-config-client",
+    "category": "CLOUD",
+    "priority": 0,
+    "build": {
+      "maven": {
+        "dependencies": [
+          {
+            "groupId": "org.springframework.cloud",
+            "artifactId": "spring-cloud-starter-config"
+          }
+        ],
+        "plugins": [],
+        "exclusions": []
+      },
+      "gradle": {
+        "implementation": ["org.springframework.cloud:spring-cloud-starter-config"],
+        "compileOnly": [],
+        "runtimeOnly": [],
+        "annotationProcessor": [],
+        "compilerOptions": []
+      }
+    },
+    "runtime": {
+      "properties": [
+        {
+          "key": "spring.config.import",
+          "value": "optional:configserver:http://localhost:8888"
+        }
+      ]
+    },
+    "infrastructure": {
+      "dockerCompose": null
+    },
+    "scaffolding": {
+      "files": []
+    }
+  },
+  {
     "id": "cors",
     "category": "SECURITY",
     "priority": 0,

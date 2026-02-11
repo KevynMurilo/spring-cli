@@ -15,18 +15,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 {% endif %}
 public class AuthResponse {
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "JWT access token", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
-    {% endif %}
+{% endif %}
     private String token;
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "Token type", example = "Bearer")
-    {% endif %}
+{% endif %}
     private String type;
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "Username", example = "admin")
-    {% endif %}
+{% endif %}
     private String username;
 }

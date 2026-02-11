@@ -15,13 +15,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 {% endif %}
 public class {{ entityName }}DTO {
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "Unique identifier", example = "1")
-    {% endif %}
+{% endif %}
     private Long id;
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "{{ entityName }} name", example = "Example name")
-    {% endif %}
+{% endif %}
     private String name;
 }

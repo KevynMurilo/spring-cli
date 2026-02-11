@@ -15,13 +15,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 {% endif %}
 public class LoginRequest {
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "Username", example = "admin", required = true)
-    {% endif %}
+{% endif %}
     private String username;
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Schema(description = "Password", example = "password", required = true)
-    {% endif %}
+{% endif %}
     private String password;
 }

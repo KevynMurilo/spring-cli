@@ -3,18 +3,16 @@ package {{ currentPackage }};
 {% if currentPackage != pkg['model'] %}
 import {{ pkg.model }}.{{ entityName }};
 {% endif %}
-
 {% if architecture == 'HEXAGONAL' or architecture == 'CLEAN' %}
-    {% if currentPackage != pkg['port-out'] %}
+{% if currentPackage != pkg['port-out'] %}
 import {{ pkg['port-out'] }}.{{ entityName }}Repository;
-    {% endif %}
-{% else %}
-    {% if currentPackage != pkg['repository'] %}
-import {{ pkg.repository }}.{{ entityName }}Repository;
-    {% endif %}
 {% endif %}
-
-    {% if currentPackage != pkg['exception'] %}
+{% else %}
+{% if currentPackage != pkg['repository'] %}
+import {{ pkg.repository }}.{{ entityName }}Repository;
+{% endif %}
+{% endif %}
+{% if currentPackage != pkg['exception'] %}
 import {{ pkg.exception }}.ResourceNotFoundException;
 {% endif %}
 

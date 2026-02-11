@@ -5,6 +5,7 @@ import java.util.*;
 public enum Architecture {
 
     MVC(define("Model-View-Controller")
+            .desc("Traditional pattern separating data, UI, and logic. Simple and great for CRUD apps.")
             .layer("model", "model")
             .layer("dto", "dto")
             .layer("mapper", "mapper")
@@ -37,6 +38,7 @@ public enum Architecture {
     ),
 
     LAYERED(define("Layered Architecture")
+            .desc("Organizes code in horizontal layers: presentation, business, and persistence.")
             .layer("model", "database/model")
             .layer("dto", "presentation/dto")
             .layer("mapper", "business/mapper")
@@ -69,6 +71,7 @@ public enum Architecture {
     ),
 
     CLEAN(define("Clean Architecture")
+            .desc("Dependency inversion with domain at the center. Ideal for complex business rules.")
             .layer("model", "domain/model")
             .layer("dto", "application/dto")
             .layer("usecase", "application/usecase")
@@ -102,6 +105,7 @@ public enum Architecture {
     ),
 
     HEXAGONAL(define("Hexagonal (Ports & Adapters)")
+            .desc("Ports & Adapters pattern. Decouples business logic from infrastructure.")
             .layer("model", "domain/model")
             .layer("port-out", "application/port/out")
             .layer("service", "application/service")
@@ -135,6 +139,7 @@ public enum Architecture {
     ),
 
     FEATURE_DRIVEN(define("Feature-Driven")
+            .desc("Organizes code by business features. Each feature is self-contained.")
             .layer("model", "features/{feature}/model")
             .layer("repository", "features/{feature}/repository")
             .layer("service", "features/{feature}/service")
@@ -164,6 +169,7 @@ public enum Architecture {
     ),
 
     DDD(define("Domain-Driven Design")
+            .desc("Focuses on the core domain and domain logic. Best for complex enterprise apps.")
             .layer("model", "domain/entities")
             .layer("repository", "domain/repositories")
             .layer("service", "domain/services")
@@ -198,6 +204,7 @@ public enum Architecture {
     ),
 
     CQRS(define("CQRS")
+            .desc("Separates read and write operations. Great for high-performance systems.")
             .layer("model", "domain/model")
             .layer("dto", "application/dto")
             .layer("repository", "infrastructure/persistence")
@@ -228,6 +235,7 @@ public enum Architecture {
     ),
 
     EVENT_DRIVEN(define("Event-Driven")
+            .desc("Built around event production and consumption. Ideal for async microservices.")
             .layer("model", "domain/model")
             .layer("repository", "infrastructure/persistence")
             .layer("service", "application/services")
@@ -257,6 +265,7 @@ public enum Architecture {
     ),
 
     ONION(define("Onion Architecture")
+            .desc("Concentric layers with domain at the core. Similar to Clean Architecture.")
             .layer("model", "core/domain")
             .layer("service", "core/services")
             .layer("repository", "infrastructure/persistence")
@@ -286,6 +295,7 @@ public enum Architecture {
     ),
 
     VERTICAL_SLICE(define("Vertical Slice")
+            .desc("Each feature is a complete vertical slice through all layers.")
             .layer("feature", "features/{feature}")
             .layer("model", "features/{feature}")
             .layer("repository", "features/{feature}")
@@ -315,12 +325,14 @@ public enum Architecture {
     );
 
     private final String displayName;
+    private final String description;
     private final Map<String, String> layerMappings;
     private final List<ArchitectureBlueprint> blueprints;
     private final List<FeatureBlueprint> featureBlueprints;
 
     Architecture(Builder builder) {
         this.displayName = builder.displayName;
+        this.description = builder.description;
         this.layerMappings = builder.mappings;
         this.blueprints = builder.blueprints;
         this.featureBlueprints = builder.featureBlueprints;
@@ -344,6 +356,8 @@ public enum Architecture {
 
     public String getDisplayName() { return displayName; }
 
+    public String getDescription() { return description; }
+
     private static Builder define(String name) { return new Builder(name); }
 
     @FunctionalInterface
@@ -360,11 +374,17 @@ public enum Architecture {
 
     private static class Builder {
         String displayName;
+        String description = "";
         Map<String, String> mappings = new HashMap<>();
         List<ArchitectureBlueprint> blueprints = new ArrayList<>();
         List<FeatureBlueprint> featureBlueprints = new ArrayList<>();
 
         public Builder(String name) { this.displayName = name; }
+
+        public Builder desc(String description) {
+            this.description = description;
+            return this;
+        }
 
         public Builder layer(String logicalName, String physicalPath) {
             this.mappings.put(logicalName, physicalPath);

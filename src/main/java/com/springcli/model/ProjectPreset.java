@@ -40,6 +40,33 @@ public enum ProjectPreset {
             new ProjectFeatures(false, false, false, true, false, true, false, false, false)
     ),
 
+    REACTIVE_API(
+            "Reactive-API",
+            "Reactive WebFlux API with R2DBC",
+            Architecture.CLEAN,
+            "21",
+            Set.of("webflux", "data-r2dbc", "h2", "validation", "lombok", "devtools"),
+            new ProjectFeatures(false, true, true, true, false, true, false, false, false)
+    ),
+
+    EVENT_DRIVEN_SERVICE(
+            "Event-Driven",
+            "Event-driven microservice with Kafka",
+            Architecture.EVENT_DRIVEN,
+            "21",
+            Set.of("web", "kafka", "data-jpa", "postgresql", "actuator", "lombok"),
+            new ProjectFeatures(false, true, true, true, true, true, true, true, true)
+    ),
+
+    DDD_SERVICE(
+            "DDD-Service",
+            "Domain-Driven Design service",
+            Architecture.DDD,
+            "21",
+            Set.of("web", "data-jpa", "postgresql", "validation", "lombok", "devtools"),
+            new ProjectFeatures(false, true, true, true, true, true, false, false, true)
+    ),
+
     MINIMAL(
             "Minimal",
             "Minimal Spring Boot app",

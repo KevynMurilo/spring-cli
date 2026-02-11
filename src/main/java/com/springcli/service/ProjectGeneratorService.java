@@ -204,29 +204,8 @@ public class ProjectGeneratorService {
     private void generateCiCdFiles(ProjectConfig config, Path projectRoot) throws IOException {
         Path githubDir = projectRoot.resolve(".github/workflows");
         fileSystemService.createDirectories(githubDir);
-        String ciYml = """
-                name: CI/CD Pipeline
-                on:
-                  push:
-                    branches: [ main, develop ]
-                  pull_request:
-                    branches: [ main ]
-                jobs:
-                  build:
-                    runs-on: ubuntu-latest
-                    steps:
-                    - uses: actions/checkout@v3
-                    - name: Set up JDK %s
-                      uses: actions/setup-java@v3
-                      with:
-                        java-version: '%s'
-                        distribution: 'temurin'
-                    - name: Build with Maven
-                      run: mvn clean install
-                    - name: Run tests
-                      run: mvn test
-                """.formatted(config.javaVersion(), config.javaVersion());
-        fileSystemService.writeFile(githubDir.resolve("ci.yml"), ciYml);
+        TemplateContext context = buildTemplateContext(config);
+        fileSystemService.writeFile(githubDir.resolve("ci.yml"), templateService.renderOps("github-actions", context));
     }
 
     private void generateGitignore(ProjectConfig config, Path projectRoot) throws IOException {

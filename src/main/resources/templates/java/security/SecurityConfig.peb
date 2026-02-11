@@ -9,9 +9,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 {% if features.enableJwt %}
-    {% if currentPackage != pkg['security'] %}
+{% if currentPackage != pkg['security'] %}
 import {{ pkg.security }}.JwtAuthenticationFilter;
 import {{ pkg.security }}.JwtAuthenticationEntryPoint;
 {% endif %}
@@ -27,10 +26,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    {% if features.enableJwt %}
+{% if features.enableJwt %}
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
-    {% endif %}
+{% endif %}
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,8 +38,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        {% if features.enableSwagger %}
-                        // Liberar endpoints do Swagger/OpenAPI
+{% if features.enableSwagger %}
                         .requestMatchers(
                             "/swagger-ui.html",
                             "/swagger-ui/**",
@@ -50,25 +48,23 @@ public class SecurityConfig {
                             "/configuration/ui",
                             "/configuration/security"
                         ).permitAll()
-                        {% endif %}
-    {% if database == 'h2' %}
-                        // Liberar console do H2
+{% endif %}
+{% if database == 'h2' %}
                         .requestMatchers("/h2-console/**").permitAll()
-                        {% endif %}
+{% endif %}
                         .anyRequest().authenticated()
                 )
-                {% if database == 'h2' %}
-                // Configuração para o H2 Console
+{% if database == 'h2' %}
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
-                {% endif %}
-    {% if features.enableJwt %}
+{% endif %}
+{% if features.enableJwt %}
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                {% endif %}
+{% endif %}
                 .build();
     }
 
-    {% if features.enableJwt %}
+{% if features.enableJwt %}
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -78,5 +74,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    {% endif %}
+{% endif %}
 }

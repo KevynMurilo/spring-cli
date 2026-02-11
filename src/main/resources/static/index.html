@@ -36,13 +36,11 @@
     </script>
 
     <style>
-        /* Scrollbar Fina e Elegante */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #52525b; }
 
-        /* Glassmorphism & Background */
         .bg-grid {
             background-image: radial-gradient(#3f3f46 1px, transparent 1px);
             background-size: 24px 24px;
@@ -59,11 +57,9 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* Accordion Transitions */
         .accordion-content { transition: all 0.3s ease-in-out; max-height: 2000px; opacity: 1; overflow: hidden; }
         .accordion-content.collapsed { max-height: 0; opacity: 0; margin: 0; padding: 0; }
 
-        /* Interactive Elements */
         .selected-pill {
             background-color: #6db33f !important;
             color: white !important;
@@ -74,6 +70,76 @@
 
         .spinner { border-top-color: #6db33f; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .arch-card { transition: all 0.2s ease; }
+        .arch-card.selected {
+            border-color: #6db33f !important;
+            background: rgba(109, 179, 63, 0.08) !important;
+            box-shadow: 0 0 0 1px #6db33f;
+        }
+        .dark .arch-card.selected {
+            background: rgba(109, 179, 63, 0.12) !important;
+        }
+
+        .feature-disabled { opacity: 0.35; pointer-events: none; }
+
+        .dep-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px 2px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(109, 179, 63, 0.1);
+            color: #6db33f;
+            border: 1px solid rgba(109, 179, 63, 0.3);
+        }
+        .dep-chip button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            font-size: 9px;
+            opacity: 0.6;
+            transition: opacity 0.15s;
+        }
+        .dep-chip button:hover { opacity: 1; }
+
+        .modal-overlay {
+            transition: opacity 0.2s ease;
+        }
+        .modal-panel {
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .layer-tree-item {
+            position: relative;
+            padding-left: 1.25rem;
+        }
+        .layer-tree-item::before {
+            content: '';
+            position: absolute;
+            left: 0.25rem;
+            top: 0;
+            bottom: 0.75rem;
+            width: 1px;
+            background: rgba(109, 179, 63, 0.3);
+        }
+        .layer-tree-item::after {
+            content: '';
+            position: absolute;
+            left: 0.25rem;
+            top: 0.75rem;
+            width: 0.65rem;
+            height: 1px;
+            background: rgba(109, 179, 63, 0.3);
+        }
+        .layer-tree-item:last-child::before {
+            bottom: 0.75rem;
+            height: 0.75rem;
+        }
     </style>
 </head>
 
@@ -93,7 +159,16 @@
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Generator</p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+                <button onclick="openSettingsModal()" title="Settings" class="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-700 dark:hover:text-white transition-all focus:outline-none">
+                    <i class="fas fa-gear"></i>
+                </button>
+                <button onclick="openKeyboardModal()" title="Keyboard shortcuts (?)" class="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 hover:text-gray-700 dark:hover:text-white transition-all focus:outline-none">
+                    <i class="fas fa-keyboard"></i>
+                </button>
+                <button onclick="resetForm()" title="Reset all fields" class="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all focus:outline-none">
+                    <i class="fas fa-rotate-left"></i>
+                </button>
                 <button id="themeToggle" class="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 transition-all focus:outline-none">
                     <i class="fas fa-moon dark:hidden"></i>
                     <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
@@ -112,12 +187,18 @@
 
         <div class="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
 
+            <!-- PRESET -->
             <div class="glass rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
                     <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
                         <i class="fas fa-star"></i>
                     </div>
                     <h2 class="font-bold text-base uppercase tracking-wide text-gray-900 dark:text-white">Preset</h2>
+                    <div class="ml-auto flex gap-1.5">
+                        <button onclick="openSavePresetModal()" title="Save current config as preset" class="w-8 h-8 rounded-lg flex items-center justify-center bg-spring-100 dark:bg-spring-900/30 text-spring-600 hover:bg-spring-200 dark:hover:bg-spring-900/50 transition-all">
+                            <i class="fas fa-floppy-disk text-xs"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="space-y-3">
@@ -134,9 +215,14 @@
                     <div id="presetDescription" class="hidden mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl">
                         <p class="text-xs text-blue-700 dark:text-blue-300 leading-relaxed"></p>
                     </div>
+                    <!-- Delete custom preset button (hidden by default) -->
+                    <button id="deletePresetBtn" class="hidden w-full mt-2 py-2 px-3 rounded-xl border border-red-200 dark:border-red-800/30 bg-red-50 dark:bg-red-900/15 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/30 transition-all flex items-center justify-center gap-2" onclick="deleteSelectedPreset()">
+                        <i class="fas fa-trash text-[10px]"></i> Delete Custom Preset
+                    </button>
                 </div>
             </div>
 
+            <!-- METADATA -->
             <div class="glass rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
                     <div class="w-8 h-8 rounded-full bg-spring-100 dark:bg-spring-900/30 text-spring-600 flex items-center justify-center">
@@ -189,6 +275,7 @@
                 </div>
             </div>
 
+            <!-- TECH STACK -->
             <div class="glass rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
                     <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
@@ -239,22 +326,10 @@
                             <input type="hidden" id="packaging">
                         </div>
                     </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 block">Architecture Pattern</label>
-                        <div class="relative group">
-                            <i class="fas fa-sitemap absolute left-3.5 top-3.5 text-gray-400 text-xs z-10"></i>
-                            <select id="architecture" class="appearance-none w-full bg-gray-50 dark:bg-[#15151e] border border-gray-200 dark:border-white/10 rounded-xl pl-9 pr-10 py-3 text-sm focus:ring-2 focus:ring-spring-500 outline-none cursor-pointer transition-all text-gray-700 dark:text-gray-200 font-medium hover:border-spring-400">
-                                <option>Loading...</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                                <i class="fas fa-chevron-down text-xs group-hover:text-spring-500 transition-colors"></i>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
+            <!-- GENERATE BUTTON (Desktop) -->
             <button onclick="validateAndSubmit()" class="hidden lg:flex w-full relative overflow-hidden bg-gradient-to-r from-spring-600 to-spring-500 hover:to-spring-400 text-white font-bold py-4 rounded-2xl shadow-lg shadow-spring-500/25 transition-all hover:-translate-y-1 active:translate-y-0 items-center justify-center gap-3 group">
                     <span class="relative z-10 flex items-center gap-2 text-lg tracking-wide">
                         <i class="fas fa-rocket group-hover:animate-bounce"></i>
@@ -264,25 +339,57 @@
             </button>
         </div>
 
+        <!-- RIGHT COLUMN -->
         <div class="lg:col-span-8 space-y-6">
 
+            <!-- ARCHITECTURE -->
             <div class="glass rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
-                <div class="flex items-center gap-3 mb-6">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center">
+                        <i class="fas fa-sitemap"></i>
+                    </div>
+                    <h2 class="font-bold text-base uppercase tracking-wide text-gray-900 dark:text-white">Architecture</h2>
+                </div>
+
+                <div id="architectureContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div class="col-span-full py-6 text-center text-gray-400 text-sm animate-pulse">Loading architectures...</div>
+                </div>
+                <input type="hidden" id="architecture">
+                <div id="archDescription" class="hidden mt-4 p-3 bg-indigo-50 dark:bg-indigo-900/15 border border-indigo-200 dark:border-indigo-800/30 rounded-xl">
+                    <p class="text-xs text-indigo-700 dark:text-indigo-300 leading-relaxed"></p>
+                </div>
+
+                <!-- Architecture Layer Preview -->
+                <div id="archLayerPreview" class="hidden mt-4">
+                    <button onclick="toggleLayerPreview()" class="flex items-center gap-2 text-[10px] font-bold text-spring-600 dark:text-spring-400 uppercase tracking-wider hover:text-spring-500 transition-colors">
+                        <i id="layerToggleIcon" class="fas fa-chevron-right text-[8px] transition-transform"></i>
+                        Package Structure Preview
+                    </button>
+                    <div id="layerTreeContainer" class="accordion-content collapsed mt-3 p-4 bg-gray-50 dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAPABILITIES / FEATURES -->
+            <div class="glass rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
                     <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 flex items-center justify-center">
                         <i class="fas fa-wand-magic-sparkles"></i>
                     </div>
                     <h2 class="font-bold text-base uppercase tracking-wide text-gray-900 dark:text-white">Capabilities</h2>
+                    <span class="text-[10px] text-gray-400 ml-auto">Some features require specific dependencies</span>
                 </div>
 
-                <div id="featuresContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="col-span-full py-8 text-center text-gray-400 text-sm animate-pulse">Loading features...</div>
+                <div id="featuresContainer" class="space-y-5">
+                    <div class="py-8 text-center text-gray-400 text-sm animate-pulse">Loading features...</div>
                 </div>
             </div>
 
+            <!-- DEPENDENCIES -->
             <div class="glass rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-black/30 overflow-hidden flex flex-col min-h-[600px] border border-white/20 dark:border-white/5">
 
                 <div class="p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center">
                                 <i class="fas fa-cubes"></i>
@@ -292,7 +399,13 @@
                                 <p class="text-[10px] text-gray-500"><span id="depCountLabel" class="font-bold text-spring-500">0</span> Selected</p>
                             </div>
                         </div>
+                        <button onclick="clearAllDeps()" class="text-[10px] font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider">
+                            Clear All
+                        </button>
                     </div>
+
+                    <!-- Selected deps chips -->
+                    <div id="selectedDepsChips" class="hidden flex-wrap gap-1.5 mb-4"></div>
 
                     <div class="relative group">
                         <i class="fas fa-search absolute left-4 top-3.5 text-gray-400 group-focus-within:text-spring-500 transition-colors"></i>
@@ -316,13 +429,22 @@
     </div>
 </div>
 
+<!-- Mobile Generate Button -->
 <div class="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-[#09090b]/95 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 z-40">
     <button onclick="validateAndSubmit()" class="w-full bg-gradient-to-r from-spring-600 to-spring-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-spring-500/20 flex items-center justify-center gap-2 active:scale-95 transition-transform">
         <i class="fas fa-rocket"></i> Generate Project
     </button>
 </div>
 
-<div id="toast" class="fixed top-5 right-5 transform translate-x-[120%] transition-transform duration-300 z-50 bg-white dark:bg-dark-800 border-l-4 rounded-xl shadow-2xl flex items-center gap-4 p-4 min-w-[320px] max-w-sm">
+<!-- Footer -->
+<footer class="z-10 relative border-t border-gray-200/50 dark:border-white/5 mt-12 py-6 text-center">
+    <p class="text-[11px] text-gray-400">
+        Spring CLI Generator &mdash; Avoid boilerplate, focus on business logic
+    </p>
+</footer>
+
+<!-- Toast -->
+<div id="toast" class="fixed top-5 right-5 transform translate-x-[120%] transition-transform duration-300 z-[60] bg-white dark:bg-dark-800 border-l-4 rounded-xl shadow-2xl flex items-center gap-4 p-4 min-w-[320px] max-w-sm">
     <div id="toastIcon" class="flex-shrink-0"></div>
     <div>
         <h4 id="toastTitle" class="font-bold text-sm text-gray-900 dark:text-white">Notification</h4>
@@ -330,6 +452,7 @@
     </div>
 </div>
 
+<!-- Loading Overlay -->
 <div id="loadingOverlay" class="hidden fixed inset-0 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-md z-50 flex flex-col items-center justify-center transition-all duration-300">
     <div class="relative">
         <div class="w-20 h-20 border-4 border-gray-200 dark:border-white/10 border-t-spring-500 rounded-full spinner"></div>
@@ -341,6 +464,7 @@
     <p class="text-gray-500 dark:text-gray-400 text-sm mt-1 animate-pulse">Please wait...</p>
 </div>
 
+<!-- Result Modal -->
 <div id="resultModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
     <div class="relative bg-white dark:bg-[#15151e] rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-white/10 transform transition-all scale-100">
@@ -355,10 +479,229 @@
     </div>
 </div>
 
+<!-- Settings Modal -->
+<div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm modal-overlay" onclick="closeSettingsModal()"></div>
+    <div class="relative bg-white dark:bg-[#15151e] rounded-3xl p-0 max-w-lg w-full shadow-2xl border border-gray-100 dark:border-white/10 modal-panel max-h-[90vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 pb-4 border-b border-gray-100 dark:border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-300">
+                    <i class="fas fa-gear"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Settings</h3>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Default configuration</p>
+                </div>
+            </div>
+            <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-400">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-5">
+            <!-- Project Defaults -->
+            <div>
+                <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Project Defaults</h4>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1 block">Default Group ID</label>
+                            <input type="text" id="cfgGroupId" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-spring-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1 block">Default Output Dir</label>
+                            <input type="text" id="cfgOutputDir" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-spring-500 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1 block">Java Version</label>
+                            <select id="cfgJavaVersion" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-spring-500 outline-none">
+                                <option>17</option>
+                                <option>21</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1 block">Packaging</label>
+                            <select id="cfgPackaging" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-spring-500 outline-none">
+                                <option value="jar">JAR</option>
+                                <option value="war">WAR</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-500 mb-1 block">Architecture</label>
+                            <select id="cfgArchitecture" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-spring-500 outline-none">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IDE -->
+            <div>
+                <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">IDE Integration</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 mb-1 block">Preferred IDE</label>
+                        <select id="cfgIde" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-spring-500 outline-none">
+                            <option value="idea">IntelliJ IDEA</option>
+                            <option value="code">VS Code</option>
+                            <option value="eclipse">Eclipse</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end pb-1">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="cfgAutoOpenIde" class="w-4 h-4 rounded border-gray-300 text-spring-500 focus:ring-spring-500">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">Auto-open IDE</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generation Options -->
+            <div>
+                <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Generation Options</h4>
+                <div class="space-y-2.5">
+                    <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                        <input type="checkbox" id="cfgYml" class="w-4 h-4 rounded border-gray-300 text-spring-500 focus:ring-spring-500">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800 dark:text-gray-200 block">Use application.yml</span>
+                            <span class="text-[10px] text-gray-500">Use YAML format instead of .properties</span>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                        <input type="checkbox" id="cfgReadme" class="w-4 h-4 rounded border-gray-300 text-spring-500 focus:ring-spring-500">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800 dark:text-gray-200 block">Generate README.md</span>
+                            <span class="text-[10px] text-gray-500">Auto-generate project README</span>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                        <input type="checkbox" id="cfgGitignore" class="w-4 h-4 rounded border-gray-300 text-spring-500 focus:ring-spring-500">
+                        <div>
+                            <span class="text-xs font-bold text-gray-800 dark:text-gray-200 block">Generate .gitignore</span>
+                            <span class="text-[10px] text-gray-500">Auto-generate .gitignore file</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Utilities -->
+            <div>
+                <h4 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-3">Utilities</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="refreshMetadata()" class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 hover:border-spring-400 hover:text-spring-600 transition-all text-xs font-bold text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-arrows-rotate"></i> Refresh Metadata
+                    </button>
+                    <button onclick="clearCache()" class="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20 hover:border-red-400 hover:text-red-600 transition-all text-xs font-bold text-gray-600 dark:text-gray-400">
+                        <i class="fas fa-broom"></i> Clear Cache
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between p-6 pt-4 border-t border-gray-100 dark:border-white/5">
+            <button onclick="resetSettings()" class="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-400 hover:border-red-400 hover:text-red-500 transition-all">
+                Reset Defaults
+            </button>
+            <button onclick="saveSettings()" class="px-6 py-2.5 rounded-xl bg-spring-600 hover:bg-spring-500 text-white text-xs font-bold shadow-lg shadow-spring-500/20 transition-all">
+                Save Settings
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Save Preset Modal -->
+<div id="savePresetModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSavePresetModal()"></div>
+    <div class="relative bg-white dark:bg-[#15151e] rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-white/10">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-xl bg-spring-100 dark:bg-spring-900/30 flex items-center justify-center text-spring-600">
+                <i class="fas fa-floppy-disk"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Save Preset</h3>
+                <p class="text-[10px] text-gray-500 uppercase tracking-wider">Save current configuration</p>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Preset Name</label>
+                <input type="text" id="newPresetName" placeholder="e.g. My REST API" class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-spring-500 outline-none">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Description</label>
+                <input type="text" id="newPresetDesc" placeholder="Brief description..." class="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-sm focus:ring-2 focus:ring-spring-500 outline-none">
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+            <button onclick="closeSavePresetModal()" class="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 transition-all">
+                Cancel
+            </button>
+            <button onclick="saveNewPreset()" class="flex-1 py-2.5 rounded-xl bg-spring-600 hover:bg-spring-500 text-white text-xs font-bold shadow-lg shadow-spring-500/20 transition-all">
+                Save Preset
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Keyboard Shortcuts Modal -->
+<div id="keyboardModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeKeyboardModal()"></div>
+    <div class="relative bg-white dark:bg-[#15151e] rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-white/10">
+        <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-300">
+                <i class="fas fa-keyboard"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Keyboard Shortcuts</h3>
+        </div>
+
+        <div class="space-y-2">
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-white/5">
+                <span class="text-xs text-gray-600 dark:text-gray-400">Search dependencies</span>
+                <kbd class="px-2 py-1 text-[10px] font-mono font-bold bg-gray-100 dark:bg-white/5 rounded border border-gray-200 dark:border-white/10 text-gray-500">Ctrl + K</kbd>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-white/5">
+                <span class="text-xs text-gray-600 dark:text-gray-400">Generate project</span>
+                <kbd class="px-2 py-1 text-[10px] font-mono font-bold bg-gray-100 dark:bg-white/5 rounded border border-gray-200 dark:border-white/10 text-gray-500">Ctrl + Enter</kbd>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-white/5">
+                <span class="text-xs text-gray-600 dark:text-gray-400">Open settings</span>
+                <kbd class="px-2 py-1 text-[10px] font-mono font-bold bg-gray-100 dark:bg-white/5 rounded border border-gray-200 dark:border-white/10 text-gray-500">Ctrl + ,</kbd>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-gray-100 dark:border-white/5">
+                <span class="text-xs text-gray-600 dark:text-gray-400">Show shortcuts</span>
+                <kbd class="px-2 py-1 text-[10px] font-mono font-bold bg-gray-100 dark:bg-white/5 rounded border border-gray-200 dark:border-white/10 text-gray-500">?</kbd>
+            </div>
+            <div class="flex items-center justify-between py-2">
+                <span class="text-xs text-gray-600 dark:text-gray-400">Close modal / ESC</span>
+                <kbd class="px-2 py-1 text-[10px] font-mono font-bold bg-gray-100 dark:bg-white/5 rounded border border-gray-200 dark:border-white/10 text-gray-500">Escape</kbd>
+            </div>
+        </div>
+
+        <button onclick="closeKeyboardModal()" class="w-full mt-5 py-2.5 rounded-xl bg-gray-100 dark:bg-white/5 text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 transition-all">
+            Close
+        </button>
+    </div>
+</div>
+
 <script>
     const API_BASE = window.location.origin + '/api';
 
-    // --- THEME SETUP ---
+    // --- STATE ---
+    let presetsData = [];
+    let featuresData = [];
+    let architecturesData = [];
+    let cachedJavaVersions = [];
+    let cachedBootVersions = [];
+    let userConfig = null;
+
+    // --- THEME ---
     const htmlElement = document.documentElement;
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         htmlElement.classList.add('dark');
@@ -372,18 +715,15 @@
     function createPillSelector(containerId, inputId, items, defaultVal, labelKey, valKey) {
         const container = document.getElementById(containerId);
         const input = document.getElementById(inputId);
-        container.innerHTML = ''; // Important: Clear previous items!
+        container.innerHTML = '';
 
-        // Logic for grid layout based on item count
-        if(containerId === 'buildToolContainer') {
-            container.className = items.length > 2 ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 gap-2';
+        if (containerId === 'buildToolContainer') {
+            container.className = 'grid grid-cols-2 gap-2';
         }
 
         items.forEach((item, idx) => {
             const val = valKey ? item[valKey] : item;
             const label = labelKey ? item[labelKey] : item;
-
-            // Determine if active: matches input value OR (if input empty) matches default/first
             const isActive = input.value ? (input.value === val) : (val === defaultVal || (!defaultVal && idx === 0));
 
             if (isActive && !input.value) input.value = val;
@@ -391,14 +731,11 @@
             const btn = document.createElement('button');
             btn.type = 'button';
 
-            // Styles
-            if(containerId === 'buildToolContainer') {
-                // Build Tool Style (Full buttons)
+            if (containerId === 'buildToolContainer') {
                 btn.className = `w-full py-2.5 px-2 text-xs font-bold rounded-xl border transition-all duration-200 truncate ${isActive
                     ? 'selected-pill border-transparent transform scale-[1.02]'
                     : 'bg-white dark:bg-[#15151e] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-spring-400 dark:hover:border-spring-500 hover:text-spring-600 dark:hover:text-spring-400'}`;
             } else {
-                // Version Style (Small pills)
                 btn.className = `px-4 py-2 text-xs font-bold rounded-lg border transition-all duration-200 ${isActive
                     ? 'selected-pill border-transparent'
                     : 'bg-white dark:bg-[#15151e] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-spring-400 hover:text-spring-500'
@@ -406,7 +743,7 @@
             }
 
             btn.textContent = label;
-            btn.title = label; // Tooltip for truncated text
+            btn.title = label;
             btn.onclick = () => {
                 input.value = val;
                 createPillSelector(containerId, inputId, items, val, labelKey, valKey);
@@ -423,51 +760,156 @@
     document.getElementById('groupId').addEventListener('input', updatePackageName);
     document.getElementById('artifactId').addEventListener('input', updatePackageName);
 
+    // --- RESET ---
+    function resetForm() {
+        document.getElementById('presetSelect').value = 'scratch';
+        document.getElementById('presetDescription').classList.add('hidden');
+        document.getElementById('deletePresetBtn').classList.add('hidden');
+
+        const cfg = userConfig || {};
+        document.getElementById('groupId').value = cfg.defaultGroupId || 'com.example';
+        document.getElementById('artifactId').value = 'demo';
+        document.getElementById('projectName').value = 'demo';
+        document.getElementById('description').value = 'Demo project for Spring Boot';
+        document.getElementById('packageName').value = (cfg.defaultGroupId || 'com.example') + '.demo';
+        document.getElementById('outputPath').value = cfg.defaultOutputDir || '.';
+
+        // Reset architecture
+        const defaultArch = cfg.defaultArchitecture || (architecturesData.length > 0 ? architecturesData[0].name : 'MVC');
+        selectArchitecture(defaultArch);
+
+        // Reset deps
+        document.querySelectorAll('#dependenciesArea input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+            const label = cb.closest('.dep-item');
+            if (label) label.classList.remove('bg-spring-50', 'dark:bg-spring-900/20');
+        });
+        updateDepCount();
+
+        // Reset features
+        document.querySelectorAll('#featuresContainer input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        updateConditionalFeatures();
+
+        // Reset pills
+        const defaultJava = cfg.defaultJavaVersion || '17';
+        if (cachedJavaVersions.length) createPillSelector('javaVersionContainer', 'javaVersion', cachedJavaVersions, defaultJava);
+        if (cachedBootVersions.length) {
+            const defaultBoot = cachedBootVersions.find(v => !v.includes('SNAPSHOT') && !v.includes('M') && !v.includes('RC')) || cachedBootVersions[0];
+            createPillSelector('bootVersionContainer', 'springBootVersion', cachedBootVersions, defaultBoot);
+        }
+
+        showToast('Reset', 'All fields have been reset to defaults.', 'success');
+    }
+
     // --- INITIALIZATION ---
     async function init() {
+        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
                 e.preventDefault();
                 document.getElementById('dependencySearch').focus();
             }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                validateAndSubmit();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+                e.preventDefault();
+                openSettingsModal();
+            }
+            if (e.key === '?' && !e.target.matches('input, textarea, select')) {
+                e.preventDefault();
+                openKeyboardModal();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+                closeSettingsModal();
+                closeSavePresetModal();
+                closeKeyboardModal();
+            }
         });
-        await Promise.all([loadPresets(), loadOptions(), loadArchitectures(), loadFeatures(), loadMetadata()]);
+
+        await Promise.all([loadConfig(), loadPresets(), loadOptions(), loadArchitectures(), loadFeatures(), loadMetadata()]);
+        applyConfigDefaults();
     }
 
-    // --- PRESET MANAGEMENT ---
-    let presetsData = [];
+    // --- USER CONFIG ---
+    async function loadConfig() {
+        try {
+            const res = await fetch(`${API_BASE}/config`);
+            userConfig = await res.json();
+        } catch(e) {
+            console.error('Config load error', e);
+            userConfig = null;
+        }
+    }
 
+    function applyConfigDefaults() {
+        if (!userConfig) return;
+        document.getElementById('groupId').value = userConfig.defaultGroupId || 'com.example';
+        document.getElementById('outputPath').value = userConfig.defaultOutputDir || '.';
+        updatePackageName();
+
+        if (userConfig.defaultJavaVersion && cachedJavaVersions.length) {
+            createPillSelector('javaVersionContainer', 'javaVersion', cachedJavaVersions, userConfig.defaultJavaVersion);
+        }
+        if (userConfig.defaultArchitecture && architecturesData.length) {
+            selectArchitecture(userConfig.defaultArchitecture);
+        }
+    }
+
+    // --- PRESET ---
     async function loadPresets() {
         try {
             const res = await fetch(`${API_BASE}/presets`);
             presetsData = await res.json();
-
-            const select = document.getElementById('presetSelect');
-            select.innerHTML = '';
-
-            // Add "Start from scratch" option
-            const scratchOpt = document.createElement('option');
-            scratchOpt.value = 'scratch';
-            scratchOpt.textContent = '✨ Start from scratch';
-            select.appendChild(scratchOpt);
-
-            // Add separator
-            const separator = document.createElement('option');
-            separator.disabled = true;
-            separator.textContent = '─────────────────────';
-            select.appendChild(separator);
-
-            // Add presets
-            presetsData.forEach(preset => {
-                const opt = document.createElement('option');
-                opt.value = preset.name;
-                opt.textContent = `${preset.builtIn ? '🌟' : '⭐'} ${preset.name}`;
-                select.appendChild(opt);
-            });
-
+            renderPresetSelect();
         } catch(e) {
             console.error("Presets Error", e);
             showToast('Error', 'Failed to load presets.', 'error');
+        }
+    }
+
+    function renderPresetSelect() {
+        const select = document.getElementById('presetSelect');
+        select.innerHTML = '';
+
+        const scratchOpt = document.createElement('option');
+        scratchOpt.value = 'scratch';
+        scratchOpt.textContent = 'Start from scratch';
+        select.appendChild(scratchOpt);
+
+        const builtIn = presetsData.filter(p => p.builtIn);
+        const custom = presetsData.filter(p => !p.builtIn);
+
+        if (builtIn.length > 0) {
+            const sep1 = document.createElement('option');
+            sep1.disabled = true;
+            sep1.textContent = '\u2500\u2500\u2500 Built-in Presets \u2500\u2500\u2500';
+            select.appendChild(sep1);
+
+            builtIn.forEach(preset => {
+                const opt = document.createElement('option');
+                opt.value = preset.name;
+                opt.textContent = `\uD83D\uDD12 ${preset.name}`;
+                select.appendChild(opt);
+            });
+        }
+
+        if (custom.length > 0) {
+            const sep2 = document.createElement('option');
+            sep2.disabled = true;
+            sep2.textContent = '\u2500\u2500\u2500 Custom Presets \u2500\u2500\u2500';
+            select.appendChild(sep2);
+
+            custom.forEach(preset => {
+                const opt = document.createElement('option');
+                opt.value = preset.name;
+                opt.textContent = `\u2605 ${preset.name}`;
+                select.appendChild(opt);
+            });
         }
     }
 
@@ -475,108 +917,302 @@
         const selectedValue = document.getElementById('presetSelect').value;
         const descDiv = document.getElementById('presetDescription');
         const descText = descDiv.querySelector('p');
+        const deleteBtn = document.getElementById('deletePresetBtn');
 
         if (!selectedValue || selectedValue === 'scratch') {
             descDiv.classList.add('hidden');
+            deleteBtn.classList.add('hidden');
             return;
         }
 
         const preset = presetsData.find(p => p.name === selectedValue);
         if (!preset) return;
 
-        // Show description
         descText.textContent = preset.description;
         descDiv.classList.remove('hidden');
 
-        // Apply preset values
-        document.getElementById('architecture').value = preset.architecture;
-        document.getElementById('javaVersion').value = preset.javaVersion;
-
-        // Update version pills if they exist
-        if (document.getElementById('javaVersionContainer').children.length > 0) {
-            createPillSelector('javaVersionContainer', 'javaVersion',
-                Array.from(document.getElementById('javaVersionContainer').children).map(btn => btn.textContent),
-                preset.javaVersion);
+        // Show delete button for custom presets
+        if (!preset.builtIn) {
+            deleteBtn.classList.remove('hidden');
+        } else {
+            deleteBtn.classList.add('hidden');
         }
 
-        // Clear and set dependencies
+        // Architecture
+        selectArchitecture(preset.architecture);
+
+        // Java version pill
+        document.getElementById('javaVersion').value = preset.javaVersion;
+        if (cachedJavaVersions.length) {
+            createPillSelector('javaVersionContainer', 'javaVersion', cachedJavaVersions, preset.javaVersion);
+        }
+
+        // Dependencies
         document.querySelectorAll('#dependenciesArea input[type="checkbox"]').forEach(cb => {
             cb.checked = preset.dependencies.includes(cb.value);
-            updateDepCount(cb);
-        });
-
-        // Set features
-        Object.entries(preset.features).forEach(([key, value]) => {
-            const featureCheckbox = document.getElementById(key);
-            if (featureCheckbox) {
-                featureCheckbox.checked = value;
+            const label = cb.closest('.dep-item');
+            if (label) {
+                if (cb.checked) label.classList.add('bg-spring-50', 'dark:bg-spring-900/20');
+                else label.classList.remove('bg-spring-50', 'dark:bg-spring-900/20');
             }
         });
+        updateDepCount();
+
+        // Features
+        if (preset.features) {
+            Object.entries(preset.features).forEach(([key, value]) => {
+                const featureCheckbox = document.getElementById(key);
+                if (featureCheckbox) featureCheckbox.checked = value;
+            });
+        }
 
         updateConditionalFeatures();
+        showToast('Preset Applied', `"${preset.name}" configuration loaded.`, 'success');
+    }
 
-        showToast('Preset Applied', `"${preset.name}" preset has been applied successfully!`, 'success');
+    // --- SAVE PRESET ---
+    function openSavePresetModal() {
+        document.getElementById('savePresetModal').classList.remove('hidden');
+        document.getElementById('newPresetName').value = '';
+        document.getElementById('newPresetDesc').value = '';
+        setTimeout(() => document.getElementById('newPresetName').focus(), 100);
+    }
+
+    function closeSavePresetModal() {
+        document.getElementById('savePresetModal').classList.add('hidden');
+    }
+
+    async function saveNewPreset() {
+        const name = document.getElementById('newPresetName').value.trim();
+        const desc = document.getElementById('newPresetDesc').value.trim();
+
+        if (!name) {
+            showToast('Error', 'Please enter a preset name.', 'error');
+            return;
+        }
+
+        const deps = Array.from(document.querySelectorAll('#dependenciesArea input:checked')).map(c => c.value);
+        const feats = {};
+        document.querySelectorAll('#featuresContainer input[type="checkbox"]').forEach(el => {
+            feats[el.id] = el.checked;
+        });
+
+        try {
+            const res = await fetch(`${API_BASE}/presets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    description: desc || `Custom preset: ${name}`,
+                    architecture: document.getElementById('architecture').value,
+                    javaVersion: document.getElementById('javaVersion').value,
+                    dependencies: deps,
+                    features: feats
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                closeSavePresetModal();
+                await loadPresets();
+                document.getElementById('presetSelect').value = name;
+                showToast('Saved', `Preset "${name}" saved successfully.`, 'success');
+            } else {
+                showToast('Error', data.message || 'Failed to save preset.', 'error');
+            }
+        } catch(e) {
+            showToast('Error', 'Failed to save preset.', 'error');
+        }
+    }
+
+    async function deleteSelectedPreset() {
+        const selectedValue = document.getElementById('presetSelect').value;
+        const preset = presetsData.find(p => p.name === selectedValue);
+        if (!preset || preset.builtIn) return;
+
+        if (!confirm(`Delete preset "${preset.name}"? This cannot be undone.`)) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/presets/${encodeURIComponent(preset.name)}`, { method: 'DELETE' });
+            const data = await res.json();
+
+            if (res.ok) {
+                await loadPresets();
+                document.getElementById('presetSelect').value = 'scratch';
+                document.getElementById('presetDescription').classList.add('hidden');
+                document.getElementById('deletePresetBtn').classList.add('hidden');
+                showToast('Deleted', `Preset "${preset.name}" deleted.`, 'success');
+            } else {
+                showToast('Error', data.message || 'Failed to delete.', 'error');
+            }
+        } catch(e) {
+            showToast('Error', 'Failed to delete preset.', 'error');
+        }
+    }
+
+    // --- SETTINGS MODAL ---
+    function openSettingsModal() {
+        document.getElementById('settingsModal').classList.remove('hidden');
+
+        // Populate architecture select
+        const archSelect = document.getElementById('cfgArchitecture');
+        archSelect.innerHTML = '';
+        architecturesData.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a.name;
+            opt.textContent = a.displayName;
+            archSelect.appendChild(opt);
+        });
+
+        // Populate java versions
+        const javaSelect = document.getElementById('cfgJavaVersion');
+        javaSelect.innerHTML = '';
+        (cachedJavaVersions.length > 0 ? cachedJavaVersions : ['17', '21']).forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            javaSelect.appendChild(opt);
+        });
+
+        // Fill values from config
+        if (userConfig) {
+            document.getElementById('cfgGroupId').value = userConfig.defaultGroupId || 'com.example';
+            document.getElementById('cfgOutputDir').value = userConfig.defaultOutputDir || '.';
+            document.getElementById('cfgJavaVersion').value = userConfig.defaultJavaVersion || '21';
+            document.getElementById('cfgPackaging').value = userConfig.defaultPackaging || 'jar';
+            document.getElementById('cfgArchitecture').value = userConfig.defaultArchitecture || 'MVC';
+            document.getElementById('cfgIde').value = userConfig.preferredIde || 'idea';
+            document.getElementById('cfgAutoOpenIde').checked = userConfig.autoOpenIde || false;
+            document.getElementById('cfgYml').checked = userConfig.useApplicationYml !== false;
+            document.getElementById('cfgReadme').checked = userConfig.generateReadme !== false;
+            document.getElementById('cfgGitignore').checked = userConfig.generateGitignore !== false;
+        }
+    }
+
+    function closeSettingsModal() {
+        document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    async function saveSettings() {
+        const config = {
+            defaultGroupId: document.getElementById('cfgGroupId').value,
+            defaultJavaVersion: document.getElementById('cfgJavaVersion').value,
+            defaultPackaging: document.getElementById('cfgPackaging').value,
+            defaultArchitecture: document.getElementById('cfgArchitecture').value,
+            defaultOutputDir: document.getElementById('cfgOutputDir').value,
+            autoOpenIde: document.getElementById('cfgAutoOpenIde').checked,
+            preferredIde: document.getElementById('cfgIde').value,
+            useApplicationYml: document.getElementById('cfgYml').checked,
+            generateReadme: document.getElementById('cfgReadme').checked,
+            generateGitignore: document.getElementById('cfgGitignore').checked
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/config`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                userConfig = config;
+                closeSettingsModal();
+                showToast('Saved', 'Settings saved successfully.', 'success');
+            } else {
+                showToast('Error', data.message || 'Failed to save settings.', 'error');
+            }
+        } catch(e) {
+            showToast('Error', 'Failed to save settings.', 'error');
+        }
+    }
+
+    async function resetSettings() {
+        if (!confirm('Reset all settings to defaults?')) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/config/reset`, { method: 'POST' });
+            if (res.ok) {
+                await loadConfig();
+                openSettingsModal(); // Re-populate fields
+                showToast('Reset', 'Settings reset to defaults.', 'success');
+            }
+        } catch(e) {
+            showToast('Error', 'Failed to reset settings.', 'error');
+        }
+    }
+
+    // --- UTILITIES ---
+    async function refreshMetadata() {
+        try {
+            showToast('Refreshing', 'Refreshing metadata from Spring Initializr...', 'success');
+            const res = await fetch(`${API_BASE}/metadata/refresh`, { method: 'POST' });
+            const data = await res.json();
+
+            if (res.ok) {
+                // Reload data
+                await Promise.all([loadOptions(), loadMetadata()]);
+                showToast('Done', 'Metadata refreshed successfully.', 'success');
+            } else {
+                showToast('Error', data.message || 'Failed to refresh.', 'error');
+            }
+        } catch(e) {
+            showToast('Error', 'Failed to refresh metadata.', 'error');
+        }
+    }
+
+    async function clearCache() {
+        try {
+            const res = await fetch(`${API_BASE}/cache/clear`, { method: 'POST' });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast('Done', 'Cache cleared successfully.', 'success');
+            } else {
+                showToast('Error', data.message || 'Failed to clear cache.', 'error');
+            }
+        } catch(e) {
+            showToast('Error', 'Failed to clear cache.', 'error');
+        }
     }
 
     // --- LOAD DATA ---
-   async function loadOptions() {
+    async function loadOptions() {
         try {
             const res = await fetch(`${API_BASE}/options`);
             const data = await res.json();
 
-            // --- 1. Process Build Tools (Maven/Gradle) ---
+            // Build Tools
             const buildTools = data.buildTools.map(tool => {
                 let val, label;
-                if (typeof tool === 'string') {
-                    val = tool;
-                    label = tool;
-                } else {
-                    val = tool.val || tool.id || tool;
-                    label = tool.label || tool.name || tool;
-                }
+                if (typeof tool === 'string') { val = tool; label = tool; }
+                else { val = tool.val || tool.id || tool; label = tool.label || tool.name || tool; }
 
-                let displayLabel = label.toLowerCase()
-                    .replace('-project', '')
-                    .replace('kotlin', 'Kotlin')
-                    .replace('groovy', 'Groovy');
+                if (val === 'gradle-project-kotlin') label = 'Gradle (Kotlin)';
+                else if (val === 'gradle-project') label = 'Gradle (Groovy)';
+                else if (val === 'maven-project') label = 'Maven';
+                else { label = label.charAt(0).toUpperCase() + label.slice(1); }
 
-                displayLabel = displayLabel.charAt(0).toUpperCase() + displayLabel.slice(1);
-
-                if(displayLabel.includes('gradle') && !displayLabel.includes(' ')) displayLabel = "Gradle";
-                if(displayLabel.includes('maven')) displayLabel = "Maven";
-
-                // Ajustes finos de nomes
-                if(val === 'gradle-project-kotlin') displayLabel = 'Gradle (Kotlin)';
-                if(val === 'gradle-project') displayLabel = 'Gradle (Groovy)';
-                if(val === 'maven-project') displayLabel = 'Maven';
-
-                return { val: val, label: displayLabel };
+                return { val, label };
             });
 
             const uniqueBuildTools = [...new Map(buildTools.map(item => [item.val, item])).values()];
             const defaultTool = uniqueBuildTools.find(t => t.val.includes('maven'))?.val || uniqueBuildTools[0].val;
-
             createPillSelector('buildToolContainer', 'buildTool', uniqueBuildTools, defaultTool, 'label', 'val');
 
-            // --- 2. Spring Boot Versions (SEM FILTRO) ---
+            // Spring Boot Versions
+            cachedBootVersions = data.springBootVersions;
+            const defaultBootVersion = cachedBootVersions.find(v =>
+                !v.includes('SNAPSHOT') && !v.includes('M') && !v.includes('RC')
+            ) || cachedBootVersions[0];
 
-            // Aqui está a mágica: Pegamos TUDO o que veio do backend
-            const allVersions = data.springBootVersions;
+            // Java Versions
+            cachedJavaVersions = data.javaVersions;
+            const defaultJava = userConfig?.defaultJavaVersion || '17';
+            createPillSelector('javaVersionContainer', 'javaVersion', cachedJavaVersions, defaultJava);
+            createPillSelector('bootVersionContainer', 'springBootVersion', cachedBootVersions, defaultBootVersion);
 
-            // Lógica apenas para definir qual botão começa "aceso" (selecionado)
-            // Tenta achar a primeira que NÃO é snapshot/milestone. Se não achar, pega a primeira da lista mesmo.
-            const defaultBootVersion = allVersions.find(v =>
-                !v.includes('SNAPSHOT') &&
-                !v.includes('M') &&
-                !v.includes('RC')
-            ) || allVersions[0];
-
-            createPillSelector('javaVersionContainer', 'javaVersion', data.javaVersions, '17');
-
-            // Renderiza TODAS as versões na tela
-            createPillSelector('bootVersionContainer', 'springBootVersion', allVersions, defaultBootVersion);
-
-            // --- 3. Languages (TODAS as linguagens) ---
+            // Languages
             const allLanguages = data.languages || ['java', 'kotlin', 'groovy'];
             const languagesFormatted = allLanguages.map(lang => ({
                 val: lang,
@@ -584,13 +1220,14 @@
             }));
             createPillSelector('languageContainer', 'language', languagesFormatted, languagesFormatted[0].val, 'label', 'val');
 
-            // --- 4. Packaging Types (TODOS os tipos) ---
+            // Packaging
             const allPackagingTypes = data.packagingTypes || ['jar', 'war'];
             const packagingFormatted = allPackagingTypes.map(pkg => ({
                 val: pkg,
                 label: pkg.toUpperCase()
             }));
-            createPillSelector('packagingContainer', 'packaging', packagingFormatted, packagingFormatted[0].val, 'label', 'val');
+            const defaultPkg = userConfig?.defaultPackaging || packagingFormatted[0].val;
+            createPillSelector('packagingContainer', 'packaging', packagingFormatted, defaultPkg, 'label', 'val');
 
         } catch(e) {
             console.error("Options Error", e);
@@ -601,23 +1238,143 @@
     async function loadArchitectures() {
         try {
             const res = await fetch(`${API_BASE}/architectures`);
-            const data = await res.json();
-            const sel = document.getElementById('architecture');
-            sel.innerHTML = '';
-            data.forEach(a => {
-                const opt = document.createElement('option');
-                opt.value = a.name;
-                opt.textContent = a.displayName;
-                sel.appendChild(opt);
-            });
+            architecturesData = await res.json();
+            renderArchitectures(architecturesData);
         } catch(e) { console.error(e); }
+    }
+
+    function renderArchitectures(archs) {
+        const container = document.getElementById('architectureContainer');
+        const input = document.getElementById('architecture');
+        container.innerHTML = '';
+
+        const archIcons = {
+            'MVC': 'fa-layer-group', 'LAYERED': 'fa-bars-staggered', 'CLEAN': 'fa-bullseye',
+            'HEXAGONAL': 'fa-hexagon-nodes', 'FEATURE_DRIVEN': 'fa-puzzle-piece', 'DDD': 'fa-diagram-project',
+            'CQRS': 'fa-code-branch', 'EVENT_DRIVEN': 'fa-bolt', 'ONION': 'fa-circle-notch',
+            'VERTICAL_SLICE': 'fa-arrows-up-down'
+        };
+
+        const defaultArch = userConfig?.defaultArchitecture || null;
+
+        archs.forEach((arch, idx) => {
+            const isSelected = input.value ? input.value === arch.name : (defaultArch ? arch.name === defaultArch : idx === 0);
+            if (isSelected && !input.value) input.value = arch.name;
+
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = `arch-card flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-200 dark:border-white/10 cursor-pointer hover:border-spring-400 dark:hover:border-spring-500 ${isSelected ? 'selected' : ''}`;
+            card.dataset.arch = arch.name;
+            card.dataset.desc = arch.description || '';
+
+            const iconName = archIcons[arch.name] || 'fa-cubes';
+            card.innerHTML = `
+                <div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    <i class="fas ${iconName} text-sm"></i>
+                </div>
+                <span class="text-[10px] font-bold text-center leading-tight text-gray-700 dark:text-gray-300">${arch.displayName}</span>
+            `;
+
+            card.onclick = () => selectArchitecture(arch.name);
+            container.appendChild(card);
+        });
+
+        if (input.value) showArchDescription(input.value);
+    }
+
+    function selectArchitecture(name) {
+        const input = document.getElementById('architecture');
+        input.value = name;
+
+        document.querySelectorAll('.arch-card').forEach(card => {
+            card.classList.toggle('selected', card.dataset.arch === name);
+        });
+
+        showArchDescription(name);
+        renderLayerPreview(name);
+    }
+
+    function showArchDescription(name) {
+        const arch = architecturesData.find(a => a.name === name);
+        const descDiv = document.getElementById('archDescription');
+        const descText = descDiv.querySelector('p');
+
+        if (arch && arch.description) {
+            descText.textContent = arch.description;
+            descDiv.classList.remove('hidden');
+        } else {
+            descDiv.classList.add('hidden');
+        }
+    }
+
+    function renderLayerPreview(name) {
+        const arch = architecturesData.find(a => a.name === name);
+        const previewSection = document.getElementById('archLayerPreview');
+        const treeContainer = document.getElementById('layerTreeContainer');
+
+        if (!arch || !arch.layers || Object.keys(arch.layers).length === 0) {
+            previewSection.classList.add('hidden');
+            return;
+        }
+
+        previewSection.classList.remove('hidden');
+
+        // Build tree from layer paths
+        const tree = {};
+        const pkgBase = document.getElementById('packageName').value.replace(/\./g, '/') || 'com/example/demo';
+
+        Object.entries(arch.layers).forEach(([logical, physical]) => {
+            const parts = physical.split('/');
+            let node = tree;
+            parts.forEach(part => {
+                if (!node[part]) node[part] = {};
+                node = node[part];
+            });
+        });
+
+        function renderTree(node, depth) {
+            let html = '';
+            const entries = Object.entries(node);
+            entries.forEach(([name, children]) => {
+                const hasChildren = Object.keys(children).length > 0;
+                const icon = hasChildren ? 'fa-folder text-yellow-500' : 'fa-folder text-yellow-600/60';
+                html += `<div class="layer-tree-item">
+                    <div class="flex items-center gap-2 py-0.5">
+                        <i class="fas ${icon} text-[10px]"></i>
+                        <span class="text-[11px] font-mono text-gray-700 dark:text-gray-300">${name}</span>
+                    </div>
+                    ${hasChildren ? renderTree(children, depth + 1) : ''}
+                </div>`;
+            });
+            return html;
+        }
+
+        treeContainer.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+                <i class="fas fa-folder-open text-yellow-500 text-xs"></i>
+                <span class="text-[11px] font-mono font-bold text-gray-800 dark:text-gray-200">src/main/java/${pkgBase}/</span>
+            </div>
+            ${renderTree(tree, 0)}
+        `;
+    }
+
+    function toggleLayerPreview() {
+        const container = document.getElementById('layerTreeContainer');
+        const icon = document.getElementById('layerToggleIcon');
+        if (container.classList.contains('collapsed')) {
+            container.classList.remove('collapsed');
+            icon.classList.add('rotate-90');
+        } else {
+            container.classList.add('collapsed');
+            icon.classList.remove('rotate-90');
+        }
     }
 
     async function loadFeatures() {
         try {
             const res = await fetch(`${API_BASE}/features`);
-            const data = await res.json();
-            renderFeatures(data);
+            featuresData = await res.json();
+            renderFeatures(featuresData);
         } catch(e) { console.error(e); }
     }
 
@@ -635,7 +1392,7 @@
     function renderFeatures(features) {
         const container = document.getElementById('featuresContainer');
         container.innerHTML = '';
-        if(!features || !features.length) return;
+        if (!features || !features.length) return;
 
         const iconMap = {
             'enableJwt': 'fa-shield-halved', 'enableSwagger': 'fa-code', 'enableCors': 'fa-globe',
@@ -644,35 +1401,67 @@
             'enableCiCd': 'fa-rotate', 'enableAudit': 'fa-file-contract'
         };
 
+        const categoryColors = {
+            'Security': { bg: 'bg-red-100 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', label: 'text-red-500' },
+            'API': { bg: 'bg-blue-100 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', label: 'text-blue-500' },
+            'Data': { bg: 'bg-amber-100 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400', label: 'text-amber-500' },
+            'DevOps': { bg: 'bg-cyan-100 dark:bg-cyan-900/20', text: 'text-cyan-600 dark:text-cyan-400', label: 'text-cyan-500' }
+        };
+
+        // Group features by category
+        const grouped = {};
         features.forEach(f => {
-            const isHidden = f.id === 'enableJwt';
-            const div = document.createElement('div');
-            div.className = `${isHidden ? 'hidden' : ''} feature-card`;
-            div.id = `feature-card-${f.id}`;
-            div.innerHTML = `
-                <label class="cursor-pointer group block h-full relative">
-                    <input type="checkbox" id="${f.id}" class="peer sr-only">
-                    <div class="h-full p-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#15151e] hover:border-spring-400 dark:hover:border-spring-500 transition-all duration-200 peer-checked:bg-spring-50 dark:peer-checked:bg-spring-900/20 peer-checked:border-spring-500 peer-checked:ring-1 peer-checked:ring-spring-500">
-                        <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 text-gray-400 peer-checked:text-spring-600 peer-checked:bg-white dark:peer-checked:bg-spring-900 flex items-center justify-center transition-colors">
-                                <i class="fas ${f.icon || iconMap[f.id] || 'fa-star'} text-xs"></i>
+            const cat = f.category || 'Other';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(f);
+        });
+
+        Object.entries(grouped).forEach(([category, feats]) => {
+            const colors = categoryColors[category] || categoryColors['API'];
+
+            const section = document.createElement('div');
+            section.innerHTML = `<h3 class="text-[10px] font-bold uppercase tracking-wider mb-3 ${colors.label}">${category}</h3>`;
+
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3';
+
+            feats.forEach(f => {
+                const hasRequiredDeps = f.requiredDependencies && f.requiredDependencies.length > 0;
+                const div = document.createElement('div');
+                div.className = 'feature-card';
+                div.id = `feature-card-${f.id}`;
+                if (hasRequiredDeps) div.classList.add('feature-disabled');
+                div.dataset.requiredDeps = JSON.stringify(f.requiredDependencies || []);
+
+                div.innerHTML = `
+                    <label class="cursor-pointer group block h-full relative">
+                        <input type="checkbox" id="${f.id}" class="peer sr-only">
+                        <div class="h-full p-4 rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-[#15151e] hover:border-spring-400 dark:hover:border-spring-500 transition-all duration-200 peer-checked:bg-spring-50 dark:peer-checked:bg-spring-900/20 peer-checked:border-spring-500 peer-checked:ring-1 peer-checked:ring-spring-500">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg ${colors.bg} ${colors.text} flex items-center justify-center transition-colors flex-shrink-0">
+                                    <i class="fas ${f.icon || iconMap[f.id] || 'fa-star'} text-xs"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="block text-xs font-bold text-gray-900 dark:text-white mb-0.5 group-hover:text-spring-600 transition-colors">${f.label}</span>
+                                    <span class="block text-[10px] text-gray-500 dark:text-gray-400 leading-tight">${f.description}</span>
+                                    ${hasRequiredDeps ? `<span class="block text-[9px] text-amber-500 mt-1 font-semibold">Requires: ${f.requiredDependencies.join(', ')}</span>` : ''}
+                                </div>
                             </div>
-                            <div>
-                                <span class="block text-xs font-bold text-gray-900 dark:text-white mb-0.5 group-hover:text-spring-600 transition-colors">${f.label}</span>
-                                <span class="block text-[10px] text-gray-500 dark:text-gray-400 leading-tight">${f.description}</span>
+                            <div class="absolute top-3 right-3 opacity-0 peer-checked:opacity-100 transition-all transform scale-50 peer-checked:scale-100 text-spring-600">
+                                <i class="fas fa-check-circle"></i>
                             </div>
                         </div>
-                        <div class="absolute top-3 right-3 opacity-0 peer-checked:opacity-100 transition-all transform scale-50 peer-checked:scale-100 text-spring-600">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                </label>
-            `;
-            container.appendChild(div);
+                    </label>
+                `;
+                grid.appendChild(div);
+            });
+
+            section.appendChild(grid);
+            container.appendChild(section);
         });
 
         document.addEventListener('change', (e) => {
-            if(e.target.closest('#dependenciesArea')) updateConditionalFeatures();
+            if (e.target.closest('#dependenciesArea')) updateConditionalFeatures();
         });
     }
 
@@ -708,7 +1497,7 @@
                 label.dataset.searchText = `${dep.name.toLowerCase()} ${dep.description?.toLowerCase() || ''}`;
 
                 label.innerHTML = `
-                    <input type="checkbox" value="${dep.id}" class="peer sr-only" onchange="updateDepCount(this)">
+                    <input type="checkbox" value="${dep.id}" class="peer sr-only" onchange="onDepChange(this)">
                     <div class="w-4 h-4 mt-0.5 mr-3 rounded border border-gray-300 dark:border-gray-600 peer-checked:bg-spring-500 peer-checked:border-spring-500 flex items-center justify-center transition-all bg-white dark:bg-dark-800 shadow-sm">
                         <i class="fas fa-check text-white text-[8px] opacity-0 peer-checked:opacity-100"></i>
                     </div>
@@ -739,6 +1528,7 @@
         }
     }
 
+    // --- DEPENDENCY SEARCH ---
     document.getElementById('dependencySearch').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         document.querySelectorAll('.dep-group').forEach(group => {
@@ -767,29 +1557,94 @@
         });
     });
 
-    function updateDepCount(checkbox) {
+    // --- DEP MANAGEMENT ---
+    function onDepChange(checkbox) {
         const label = checkbox.closest('.dep-item');
-        if(checkbox.checked) {
+        if (checkbox.checked) {
             label.classList.add('bg-spring-50', 'dark:bg-spring-900/20');
         } else {
             label.classList.remove('bg-spring-50', 'dark:bg-spring-900/20');
         }
-        const count = document.querySelectorAll('#dependenciesArea input:checked').length;
-        document.getElementById('depCountLabel').textContent = count;
+        updateDepCount();
         updateConditionalFeatures();
     }
 
-    function updateConditionalFeatures() {
-        const selected = Array.from(document.querySelectorAll('#dependenciesArea input:checked')).map(c => c.value);
-        const hasSecurity = selected.includes('security');
-        const jwtCard = document.getElementById('feature-card-enableJwt');
-        if(jwtCard) {
-            if(hasSecurity) jwtCard.classList.remove('hidden');
-            else {
-                jwtCard.classList.add('hidden');
-                document.getElementById('enableJwt').checked = false;
-            }
+    function updateDepCount() {
+        const checked = document.querySelectorAll('#dependenciesArea input:checked');
+        const count = checked.length;
+        document.getElementById('depCountLabel').textContent = count;
+        updateSelectedChips();
+    }
+
+    function updateSelectedChips() {
+        const container = document.getElementById('selectedDepsChips');
+        const checked = document.querySelectorAll('#dependenciesArea input:checked');
+
+        if (checked.length === 0) {
+            container.classList.add('hidden');
+            container.classList.remove('flex');
+            container.innerHTML = '';
+            return;
         }
+
+        container.classList.remove('hidden');
+        container.classList.add('flex');
+        container.innerHTML = '';
+
+        checked.forEach(cb => {
+            const depName = cb.closest('.dep-item').querySelector('.text-xs.font-bold').textContent;
+            const chip = document.createElement('span');
+            chip.className = 'dep-chip';
+            chip.innerHTML = `${depName}<button onclick="removeDep('${cb.value}')" title="Remove"><i class="fas fa-times"></i></button>`;
+            container.appendChild(chip);
+        });
+    }
+
+    function removeDep(depId) {
+        const cb = document.querySelector(`#dependenciesArea input[value="${depId}"]`);
+        if (cb) {
+            cb.checked = false;
+            const label = cb.closest('.dep-item');
+            if (label) label.classList.remove('bg-spring-50', 'dark:bg-spring-900/20');
+            updateDepCount();
+            updateConditionalFeatures();
+        }
+    }
+
+    function clearAllDeps() {
+        document.querySelectorAll('#dependenciesArea input:checked').forEach(cb => {
+            cb.checked = false;
+            const label = cb.closest('.dep-item');
+            if (label) label.classList.remove('bg-spring-50', 'dark:bg-spring-900/20');
+        });
+        updateDepCount();
+        updateConditionalFeatures();
+
+        // Also uncheck features that required those deps
+        document.querySelectorAll('#featuresContainer input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+    }
+
+    function updateConditionalFeatures() {
+        const selectedDeps = Array.from(document.querySelectorAll('#dependenciesArea input:checked')).map(c => c.value);
+
+        document.querySelectorAll('.feature-card').forEach(card => {
+            const required = JSON.parse(card.dataset.requiredDeps || '[]');
+            if (required.length === 0) {
+                card.classList.remove('feature-disabled');
+                return;
+            }
+
+            const satisfied = required.every(dep => selectedDeps.includes(dep));
+            if (satisfied) {
+                card.classList.remove('feature-disabled');
+            } else {
+                card.classList.add('feature-disabled');
+                const cb = card.querySelector('input[type="checkbox"]');
+                if (cb) cb.checked = false;
+            }
+        });
     }
 
     // --- SUBMIT ---
@@ -799,14 +1654,14 @@
 
         requiredFields.forEach(id => {
             const el = document.getElementById(id);
-            if(!el.value.trim()) {
+            if (!el.value.trim()) {
                 el.classList.add('input-error');
                 setTimeout(() => el.classList.remove('input-error'), 500);
                 isValid = false;
             }
         });
 
-        if(!isValid) {
+        if (!isValid) {
             showToast('Missing Info', 'Please fill in all required fields.', 'error');
             return;
         }
@@ -850,8 +1705,11 @@
             });
 
             const data = await res.json();
-            if(data.success) showToast('Success', 'Project generated successfully!', 'success');
-            else showToast('Error', data.message || 'Generation failed', 'error');
+            if (data.success) {
+                showResultModal(true, data.message || 'Project generated successfully!');
+            } else {
+                showResultModal(false, data.message || 'Generation failed');
+            }
 
         } catch (e) {
             console.error(e);
@@ -875,7 +1733,7 @@
         const borderClass = type === 'success' ? 'border-green-500' : 'border-red-500';
 
         icon.innerHTML = `<i class="${iconClass}"></i>`;
-        toast.className = `fixed top-5 right-5 transform transition-transform duration-300 z-50 bg-white dark:bg-dark-900 border-l-4 ${borderClass} rounded-xl shadow-2xl flex items-center gap-4 p-4 min-w-[320px] max-w-sm`;
+        toast.className = `fixed top-5 right-5 transform transition-transform duration-300 z-[60] bg-white dark:bg-dark-900 border-l-4 ${borderClass} rounded-xl shadow-2xl flex items-center gap-4 p-4 min-w-[320px] max-w-sm`;
 
         titleEl.textContent = title;
         msgEl.textContent = msg;
@@ -896,14 +1754,24 @@
          const text = document.getElementById('resultText');
 
          modal.classList.remove('hidden');
-         if(success) {
+         if (success) {
              icon.innerHTML = '<i class="fas fa-check text-4xl text-green-500"></i>';
-             title.textContent = 'Success!';
+             icon.className = 'mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-green-50 dark:bg-green-900/20';
+             title.textContent = 'Project Generated!';
          } else {
              icon.innerHTML = '<i class="fas fa-times text-4xl text-red-500"></i>';
+             icon.className = 'mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-50 dark:bg-red-900/20';
              title.textContent = 'Error';
          }
          text.textContent = msg;
+    }
+
+    function openKeyboardModal() {
+        document.getElementById('keyboardModal').classList.remove('hidden');
+    }
+
+    function closeKeyboardModal() {
+        document.getElementById('keyboardModal').classList.add('hidden');
     }
 
     window.addEventListener('DOMContentLoaded', init);

@@ -25,41 +25,41 @@ public class {{ entityName }}Controller {
 
     private final {{ entityName }}Service service;
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "Get all {{ entityName | lower }}s")
-    {% endif %}
+{% endif %}
     @GetMapping
     public List<{{ entityName }}> getAll() {
         return service.findAll();
     }
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "Get {{ entityName | lower }} by ID")
-    {% endif %}
+{% endif %}
     @GetMapping("/{id}")
     public {{ entityName }} getById(@PathVariable Long id) {
         return service.findById(id);
     }
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "Create new {{ entityName | lower }}")
-    {% endif %}
+{% endif %}
     @PostMapping
     public {{ entityName }} create(@RequestBody {{ entityName }} entity) {
         return service.save(entity);
     }
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "Update {{ entityName | lower }}")
-    {% endif %}
+{% endif %}
     @PutMapping("/{id}")
     public {{ entityName }} update(@PathVariable Long id, @RequestBody {{ entityName }} entity) {
         return service.update(id, entity);
     }
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "Delete {{ entityName | lower }}")
-    {% endif %}
+{% endif %}
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);

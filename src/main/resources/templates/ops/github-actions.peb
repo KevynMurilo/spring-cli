@@ -1,0 +1,76 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK {{ javaVersion }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: '{{ javaVersion }}'
+        distribution: 'temurin'
+{% if buildTool == 'maven-project' or buildTool == 'maven' %}
+        cache: maven
+
+    - name: Build with Maven
+      run: mvn clean package -DskipTests
+
+    - name: Run tests
+      run: mvn test
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: {{ projectName }}
+        path: target/*.jar
+{% else %}
+        cache: gradle
+
+    - name: Build with Gradle
+      run: ./gradlew build -x test
+
+    - name: Run tests
+      run: ./gradlew test
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: {{ projectName }}
+        path: build/libs/*.jar
+{% endif %}
+{% if features.enableDocker %}
+
+  docker:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK {{ javaVersion }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: '{{ javaVersion }}'
+        distribution: 'temurin'
+
+{% if buildTool == 'maven-project' or buildTool == 'maven' %}
+    - name: Build JAR
+      run: mvn clean package -DskipTests
+{% else %}
+    - name: Build JAR
+      run: ./gradlew build -x test
+{% endif %}
+
+    - name: Build Docker image
+      run: docker build -t {{ projectName }}:latest .
+{% endif %}

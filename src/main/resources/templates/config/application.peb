@@ -1,10 +1,8 @@
 spring:
   application:
-    name:
-        {{ projectName }}
+    name: {{ projectName }}
   profiles:
-    active:
-        dev
+    active: dev
 
 server:
   port: 8080

@@ -3,7 +3,7 @@ package {{ currentPackage }};
 {% if currentPackage != pkg['dto'] %}
 import {{ pkg.dto }}.ErrorResponse;
 {% endif %}
-    {% if currentPackage != pkg['exception'] %}
+{% if currentPackage != pkg['exception'] %}
 import {{ pkg.exception }}.ResourceNotFoundException;
 import {{ pkg.exception }}.BadRequestException;
 {% endif %}

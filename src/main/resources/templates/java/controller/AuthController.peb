@@ -30,9 +30,9 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "User login", description = "Authenticate user and return JWT token")
-    {% endif %}
+{% endif %}
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -45,9 +45,9 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token, "Bearer", userDetails.getUsername()));
     }
 
-    {% if features.enableSwagger %}
+{% if features.enableSwagger %}
     @Operation(summary = "Validate token", description = "Check if JWT token is valid")
-    {% endif %}
+{% endif %}
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateToken(@RequestHeader("Authorization") String token) {
         String jwt = token.replace("Bearer ", "");

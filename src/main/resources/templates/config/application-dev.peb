@@ -33,7 +33,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 {% endif %}
 
-    {% if database == 'h2' %}
+{% if database == 'h2' %}
   h2:
     console:
       enabled: true

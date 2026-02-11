@@ -1,3 +1,12 @@
 package com.springcli.web.dto;
 
-public record FeatureInfo(String id, String label, String description, String icon) {}
+import java.util.List;
+
+public record FeatureInfo(
+        String id,
+        String label,
+        String description,
+        String icon,
+        String category,
+        List<String> requiredDependencies
+) {}

@@ -1,3 +1,5 @@
 package com.springcli.web.dto;
 
-public record ArchitectureInfo(String name, String displayName) {}
+import java.util.Map;
+
+public record ArchitectureInfo(String name, String displayName, String description, Map<String, String> layers) {}

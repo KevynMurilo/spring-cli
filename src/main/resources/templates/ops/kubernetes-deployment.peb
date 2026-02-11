@@ -22,7 +22,7 @@ spec:
         env:
         - name: SPRING_PROFILES_ACTIVE
           value: "prod"
-        {% if database == 'postgresql' %}
+{% if database == 'postgresql' %}
         - name: SPRING_DATASOURCE_URL
           valueFrom:
             configMapKeyRef:
@@ -38,7 +38,30 @@ spec:
             secretKeyRef:
               name: {{ projectName }}-secret
               key: database.password
-        {% endif %}
+{% elseif database == 'mysql' %}
+        - name: SPRING_DATASOURCE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: {{ projectName }}-config
+              key: database.url
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ projectName }}-secret
+              key: database.username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ projectName }}-secret
+              key: database.password
+{% endif %}
+{% if features.enableJwt %}
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ projectName }}-secret
+              key: jwt.secret
+{% endif %}
         resources:
           requests:
             memory: "256Mi"
@@ -77,9 +100,27 @@ kind: ConfigMap
 metadata:
   name: {{ projectName }}-config
 data:
-  application.properties: |
-    server.port=8080
-    spring.application.name={{ projectName }}
-    {% if database == 'postgresql' %}
-    database.url=jdbc:postgresql://postgres:5432/{{ projectName | replace('-', '_') }}
-    {% endif %}
+  server.port: "8080"
+  spring.application.name: "{{ projectName }}"
+{% if database == 'postgresql' %}
+  database.url: "jdbc:postgresql://postgres:5432/{{ projectName | replace('-', '_') }}"
+{% elseif database == 'mysql' %}
+  database.url: "jdbc:mysql://mysql:3306/{{ projectName | replace('-', '_') }}"
+{% endif %}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ projectName }}-secret
+type: Opaque
+stringData:
+{% if database == 'postgresql' %}
+  database.username: "postgres"
+  database.password: "change-me-in-production"
+{% elseif database == 'mysql' %}
+  database.username: "root"
+  database.password: "change-me-in-production"
+{% endif %}
+{% if features.enableJwt %}
+  jwt.secret: "change-me-in-production-use-strong-secret"
+{% endif %}

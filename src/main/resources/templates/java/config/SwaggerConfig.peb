@@ -4,7 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.License;
-{% if enableJwt %}
+{% if features.enableJwt %}
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.Components;
@@ -20,7 +20,7 @@ public class SwaggerConfig {
         OpenAPI openAPI = new OpenAPI()
                 .info(new Info()
                         .title("{{ projectName }} API")
-                        .version("1.1.0")
+                        .version("1.0.0")
                         .description("API documentation for {{ projectName }}")
                         .contact(new Contact()
                                 .name("API Support")
@@ -29,7 +29,7 @@ public class SwaggerConfig {
                                 .name("Apache 2.0")
                                 .url("https://www.apache.org/licenses/LICENSE-2.0")));
 
-        {% if enableJwt %}
+{% if features.enableJwt %}
         openAPI.components(new Components()
                 .addSecuritySchemes("bearer-jwt", new SecurityScheme()
                         .type(SecurityScheme.Type.HTTP)
@@ -38,7 +38,7 @@ public class SwaggerConfig {
                         .in(SecurityScheme.In.HEADER)
                         .name("Authorization")))
                 .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"));
-        {% endif %}
+{% endif %}
 
         return openAPI;
     }
